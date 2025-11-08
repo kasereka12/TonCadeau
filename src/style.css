@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 .bannier {
   background-image: url('../public/bannier4.jpg');
   background-size: cover;

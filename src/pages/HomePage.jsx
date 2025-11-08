@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Truck, Shield, Heart, User } from 'lucide-react';
+import { Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { products } from '../data/products';
 import man from '../../public/homme.jpg';
 import women from '../../public/jeunefille.jpg';
@@ -9,35 +11,69 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const HomePage = () => {
     const featuredProducts = products.slice(0, 4);
+    const [currentSlide, setCurrentSlide] = useState(0);
 
+    // Images du carousel
+    const carouselImages = [
+        {
+            url: '../public/man.png',
+            title: 'Cadeaux Personnalisés',
+            description: 'Créez des moments inoubliables'
+        },
+        {
+            url: '../public/homme.jpg',
+            title: 'Qualité Premium',
+            description: 'Des produits sélectionnés avec soin'
+        },
+        {
+            url: '../public/jeunefille.jpg',
+            title: 'Livraison Rapide',
+            description: 'Recevez vos cadeaux en temps voulu'
+        }
+    ];
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const nextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
+    };
     return (
         <div className="min-h-screen">
             {/* Hero Section */}
-            <section className="bannier from-pink-500 to-purple-600 text-white">
+            <section className="bannier from-pink-500 to-purple-600 text-white bg-gradient-to-r">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
                     <div className="text-center">
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+                        <h1 className="text-4xl md:text-6xl font-bold mb-8 text-white">
                             Créez des Moments Inoubliables
                         </h1>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link
-                                to="/compose-gift"
-                                className="btn-home text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all hover:scale-105 duration-300 flex items-center justify-center space-x-2 shadow-lg"
-                            >
-                                <span>Composer un Cadeau</span>
-                                <ArrowRight className="h-5 w-5" />
-                            </Link>
-                            <Link
-                                to="/products"
-                                className="btn-home1  text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#a7549b] transition-all hover:scale-105 duration-300 shadow-lg"
-                            >
-                                Voir les Produits
-                            </Link>
+                        {/* Barre de recherche */}
+                        <div className="flex justify-center">
+                            <div className="relative w-full max-w-2xl">
+                                <input
+                                    type="text"
+                                    placeholder=" Recherchez un cadeau, une occasion ou une personne..."
+                                    className="w-full bg-white px-6 py-4 text-gray-900 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-300 text-lg placeholder-gray-500"
+                                />
+                                <button
+                                    className="absolute right-2 top-2 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition-transform duration-200"
+                                >
+                                    Rechercher
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
+
 
             <div className='main-section'>
                 {/* Gift Recipient Section */}
@@ -109,7 +145,7 @@ const HomePage = () => {
                                     <i className="fa-solid fa-baby text-white"></i>
                                 </div>
                                 <h3 className="text-xl font-bold text-white group-hover:text-[#6fc7d9] transition-colors">
-                                    Bébé garçon
+                                    Bébé Garçon
                                 </h3>
                             </Link>
 
@@ -233,6 +269,61 @@ const HomePage = () => {
                                 <span>Voir Tous les Produits</span>
                                 <ArrowRight className="h-5 w-5" />
                             </Link>
+                        </div>
+                    </div>
+                </section>
+                {/* Carousel Section */}
+                <section className="py-16">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
+                            {/* Images */}
+                            {carouselImages.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                >
+                                    <img
+                                        src={image.url}
+                                        alt={image.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0  flex items-center justify-center">
+                                        <div className="text-center text-white px-6">
+                                            <h3 className="text-5xl font-bold mb-4">{image.title}</h3>
+                                            <p className="text-2xl">{image.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Navigation Buttons */}
+                            <button
+                                onClick={prevSlide}
+                                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
+                            >
+                                <ChevronLeft className="h-6 w-6 text-white" />
+                            </button>
+                            <button
+                                onClick={nextSlide}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
+                            >
+                                <ChevronRight className="h-6 w-6 text-white" />
+                            </button>
+
+                            {/* Indicators */}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
+                                {carouselImages.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentSlide(index)}
+                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
+                                            ? 'bg-white w-8'
+                                            : 'bg-white/50 hover:bg-white/75'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
