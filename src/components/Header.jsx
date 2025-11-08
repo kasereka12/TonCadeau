@@ -35,9 +35,16 @@ const Header = () => {
                     {/* Logo */}
                     <Link to="/" className="flex items-center space-x-2">
                         <img src={logo} alt="TonCadeau.fr Logo" className="h-30 w-25" />
-                        <span className={`m-0 text-2xl font-bold transition-colors duration-300 ${isScrolled ? 'text-white' : 'text-white'
-                            }`}>TonCadeau.fr</span>
+
+                        {/* Caché sur mobile, visible à partir de md */}
+                        <span
+                            className={`hidden md:inline m-0 text-2xl font-bold transition-colors duration-300 ${isScrolled ? 'text-white' : 'text-white'
+                                }`}
+                        >
+                            TonCadeau.fr
+                        </span>
                     </Link>
+
 
                     {/* Navigation */}
                     <nav className="hidden md:flex space-x-8">

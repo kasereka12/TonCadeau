@@ -2,7 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Truck, Shield, Heart, User } from 'lucide-react';
 import { products } from '../data/products';
-import man from '../../public/man.png';
+import man from '../../public/homme.jpg';
+import women from '../../public/jeunefille.jpg';
+
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const HomePage = () => {
@@ -28,7 +30,7 @@ const HomePage = () => {
                             </Link>
                             <Link
                                 to="/products"
-                                className="btn-home1 border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#a7549b] transition-all hover:scale-105 duration-300 shadow-lg"
+                                className="btn-home1  text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#a7549b] transition-all hover:scale-105 duration-300 shadow-lg"
                             >
                                 Voir les Produits
                             </Link>
