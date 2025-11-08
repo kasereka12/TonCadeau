@@ -237,6 +237,7 @@ const HomePage = () => {
                     </div>
                 </section>
 
+
                 {/* CTA Section */}
                 <section className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-20">
                     <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">

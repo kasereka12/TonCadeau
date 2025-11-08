@@ -174,22 +174,27 @@ const SupplierDashboard = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <div className="flex justify-between items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
+                    <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50 gap-4 sm:gap-0">
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Tableau de Bord Fournisseur
                             </h1>
-                            <p className="text-lg text-gray-600 mt-1">
-                                Bienvenue, <span className="font-semibold">{suppliers[supplierId - 1]?.name}</span>
+                            <p className="text-base sm:text-lg text-gray-600 mt-1">
+                                Bienvenue,{" "}
+                                <span className="font-semibold">
+                                    {suppliers[supplierId - 1]?.name}
+                                </span>
                             </p>
                         </div>
+
                         <button
                             onClick={() => setIsLoggedIn(false)}
-                            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+                            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-5 sm:px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                         >
                             Déconnexion
                         </button>
                     </div>
+
                 </div>
 
                 {/* Stats Cards */}

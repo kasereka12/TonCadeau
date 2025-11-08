@@ -132,27 +132,29 @@ const AdminPanel = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <div className="flex justify-between items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
+                    <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50 gap-4 sm:gap-0">
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Panneau Administrateur
                             </h1>
-                            <p className="text-lg text-gray-600 mt-1">
+                            <p className="text-base sm:text-lg text-gray-600 mt-1">
                                 Gestion de la plateforme CadeauBox
                             </p>
                         </div>
+
                         <button
                             onClick={() => setIsLoggedIn(false)}
-                            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+                            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-5 sm:px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                         >
                             Déconnexion
                         </button>
                     </div>
+
                 </div>
 
                 {/* Navigation Tabs */}
                 <div className="mb-8">
-                    <nav className="flex space-x-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-4 border border-white/50">
+                    <nav className="flex flex-wrap justify-center md:justify-start gap-2 md:space-x-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-3 border border-white/50">
                         {[
                             { id: 'dashboard', name: 'Tableau de Bord', icon: TrendingUp },
                             { id: 'products', name: 'Produits', icon: Package },
@@ -162,16 +164,17 @@ const AdminPanel = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center space-x-2 px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${activeTab === tab.id
-                                        ? 'bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white shadow-lg scale-105'
-                                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-[#6fc7d9]/10 hover:to-[#a7549b]/10'
+                                className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-xl font-semibold transition-all duration-300 w-full sm:w-auto ${activeTab === tab.id
+                                    ? 'bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white shadow-lg scale-105'
+                                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-[#6fc7d9]/10 hover:to-[#a7549b]/10'
                                     }`}
                             >
                                 <tab.icon className="h-5 w-5" />
-                                <span>{tab.name}</span>
+                                <span className="text-sm sm:text-base">{tab.name}</span>
                             </button>
                         ))}
                     </nav>
+
                 </div>
 
                 {/* Dashboard Tab */}
