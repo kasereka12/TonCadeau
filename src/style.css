@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+.bannier {
+  background-image: url('../public/bannier4.jpg');
+  background-size: cover;
+  padding: 10%;
+}
+
+.btn-home {
+  background-color: #6fc7d9;
+}
+
+.header-bg {
+  /* Rien ici, ou juste : */
+  /* transition: all 0.3s ease; */
+  background-image: url('../public/bannier4.jpg');
+  background-size: cover;
+}
+
+
+
+.btn-home1 {
+  background-color: #a7549b;
+}
+
+.main-section {
+  background-image: url('../public/body1.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Styles personnalisés */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animations personnalisées */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Styles pour les étoiles de notation */
+.star-filled {
+  fill: currentColor;
+}
+
+/* Responsive design amélioré */
+@media (max-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
