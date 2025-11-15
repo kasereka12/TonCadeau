@@ -66,17 +66,17 @@ const HomePage = () => {
     // Images du carousel
     const carouselImages = [
         {
-            url: '/hero1.jpg',
+            url: '/header1.jpg',
             title: 'Cadeaux Personnalisés',
             description: 'Créez des moments inoubliables'
         },
         {
-            url: '/hero2.jpg',
+            url: '/header2.jpg',
             title: 'Qualité Premium',
             description: 'Des produits sélectionnés avec soin'
         },
         {
-            url: '/jeunefille.jpg',
+            url: '/header3.jpg',
             title: 'Livraison Rapide',
             description: 'Recevez vos cadeaux en temps voulu'
         }
