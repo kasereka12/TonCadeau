@@ -38,20 +38,20 @@ const ProductsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#6fc7d9]/10 via-white to-[#a7549b]/10">
+        <div className=" main-section min-h-screen bg-gradient-to-br from-[#6fc7d9]/10 via-white to-[#a7549b]/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-white">
                         Nos Produits
                     </h1>
-                    <p className="text-lg text-gray-700">
+                    <p className="text-lg text-white/80">
                         Découvrez notre sélection de produits de qualité pour composer des cadeaux parfaits
                     </p>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-8 border border-white/50">
+                <div className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-2xl shadow-lg p-6 mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Search */}
                         <div className="relative">
@@ -61,7 +61,7 @@ const ProductsPage = () => {
                                 placeholder="Rechercher un produit..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
+                                className="text-white w-full pl-10 pr-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
                             />
                         </div>
 
@@ -70,7 +70,7 @@ const ProductsPage = () => {
                             <select
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
-                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all bg-white"
+                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all  bg-white/10 backdrop-blur-md border-2 border-white/20"
                             >
                                 {categories.map(category => (
                                     <option key={category.id} value={category.id}>
@@ -85,7 +85,7 @@ const ProductsPage = () => {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all bg-white"
+                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all  bg-white/10 backdrop-blur-md border-2 border-white/20"
                             >
                                 <option value="name">Trier par nom</option>
                                 <option value="price-low">Prix croissant</option>
@@ -98,7 +98,7 @@ const ProductsPage = () => {
 
                 {/* Results Count */}
                 <div className="mb-6">
-                    <p className="text-gray-700 font-medium">
+                    <p className="text-white font-medium">
                         {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
                     </p>
                 </div>
@@ -106,7 +106,7 @@ const ProductsPage = () => {
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredProducts.map((product) => (
-                        <div key={product.id} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/50 group">
+                        <div key={product.id} className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-2xl overflow-hidden hover:bg-white/20 hover:border-[#6fc7d9] hover:scale-105 transition-all duration-300 cursor-pointer flex flex-col">
                             <Link to={`/products/${product.id}`}>
                                 <div className="relative overflow-hidden">
                                     <img
@@ -123,8 +123,8 @@ const ProductsPage = () => {
                                         {product.category}
                                     </span>
                                 </div>
-                                <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-[#a7549b] transition-colors">{product.name}</h3>
-                                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                                <h3 className="font-bold text-lg mb-2 text-white group-hover:text-[#a7549b] transition-colors">{product.name}</h3>
+                                <p className="text-white/80 text-sm mb-3 line-clamp-2">{product.description}</p>
 
                                 <div className="flex items-center mb-3">
                                     <div className="flex text-yellow-400">
@@ -152,7 +152,7 @@ const ProductsPage = () => {
                                         to={`/products/${product.id}`}
                                         className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-gray-200 hover:to-gray-300 hover:shadow-md transition-all text-center"
                                     >
-                                        Voir Détails
+                                        Personnaliser
                                     </Link>
                                     <button
                                         onClick={() => handleAddToCart(product)}
