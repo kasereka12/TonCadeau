@@ -128,7 +128,7 @@ const HomePage = () => {
                             alt={image.title}
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-purple-600/70"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-600/30"></div>
                     </div>
                 ))}
 
