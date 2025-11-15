@@ -289,27 +289,21 @@ const HomePage = () => {
                                         alt={image.title}
                                         className="w-full h-full object-cover"
                                     />
+
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                         <div className="text-center text-white px-6">
-                                            <h3 className="text-5xl font-bold mb-4">{image.title}</h3>
-                                            <p className="text-2xl">{image.description}</p>
+                                            <p className="text-2xl">
+                                                <button className="m-2 bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-2xl text-white px-5 py-4 rounded-full font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center space-x-1">
+                                                    <span>Personnaliser maintenant</span>
+                                                    <ArrowRight className="h-5 w-5" />
+                                                </button>
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
                             ))}
 
-                            <button
-                                onClick={prevSlide}
-                                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
-                            >
-                                <ChevronLeft className="h-6 w-6 text-white" />
-                            </button>
-                            <button
-                                onClick={nextSlide}
-                                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
-                            >
-                                <ChevronRight className="h-6 w-6 text-white" />
-                            </button>
+
 
                             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
                                 {carouselImages.map((_, index) => (
