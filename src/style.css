@@ -7,6 +7,15 @@
   padding: 10%;
 }
 
+.categorie option {
+  background-color: rgba(82, 81, 81, 0.01) !important;
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: black;
+}
+
+
+
 .btn-home {
   background-color: #6fc7d9;
 }

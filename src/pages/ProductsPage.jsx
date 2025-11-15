@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext';
 const ProductsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState('name');
+    const [sortBy, setSortBy] = useState('default');
     const { addToCart } = useCart();
 
     const filteredProducts = products
@@ -52,9 +52,9 @@ const ProductsPage = () => {
 
                 {/* Filters */}
                 <div className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-2xl shadow-lg p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid  grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Search */}
-                        <div className="relative">
+                        <div className="relative md:col-span-2">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#a7549b]" />
                             <input
                                 type="text"
@@ -66,31 +66,22 @@ const ProductsPage = () => {
                         </div>
 
                         {/* Category Filter */}
-                        <div>
-                            <select
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all  bg-white/10 backdrop-blur-md border-2 border-white/20"
-                            >
-                                {categories.map(category => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
 
                         {/* Sort */}
-                        <div>
+                        <div className="relative">
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all  bg-white/10 backdrop-blur-md border-2 border-white/20"
+                                className="categorie w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all  bg-white/10 backdrop-blur-md border-2 border-white/20"
                             >
-                                <option value="name">Trier par nom</option>
-                                <option value="price-low">Prix croissant</option>
-                                <option value="price-high">Prix décroissant</option>
-                                <option value="rating">Meilleures notes</option>
+                                <option value="default">Categorie</option>
+                                <option value="name">Electronique</option>
+                                <option value="price-low">Vestimentaire</option>
+                                <option value="price-high">Accessoire de beauté</option>
+                                <option value="rating">Friandise et nourriture</option>
+                                <option value="rating">Art</option>
+                                <option value="rating">Arcade</option>
                             </select>
                         </div>
                     </div>
