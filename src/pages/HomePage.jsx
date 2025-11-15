@@ -274,52 +274,59 @@ const HomePage = () => {
                         </div>
                     </div>
                 </section>
-
-                {/* Features Section */}
+                {/* Bottom Carousel Section */}
                 <section className="py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl font-bold text-white mb-4">
-                                Pourquoi Choisir CadeauBox ?
-                            </h2>
-                            <p className="text-lg text-white/90">
-                                Une expérience unique pour offrir des cadeaux qui marquent les esprits
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Heart className="h-10 w-10 text-white" />
+                        <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
+                            {carouselImages.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                >
+                                    <img
+                                        src={image.url}
+                                        alt={image.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                        <div className="text-center text-white px-6">
+                                            <h3 className="text-5xl font-bold mb-4">{image.title}</h3>
+                                            <p className="text-2xl">{image.description}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-semibold mb-3 text-white">Personnalisation</h3>
-                                <p className="text-white/90 leading-relaxed">
-                                    Composez des cadeaux uniques en sélectionnant les produits qui correspondent parfaitement à votre destinataire.
-                                </p>
-                            </div>
+                            ))}
 
-                            <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Truck className="h-10 w-10 text-white" />
-                                </div>
-                                <h3 className="text-xl font-semibold mb-3 text-white">Livraison Rapide</h3>
-                                <p className="text-white/90 leading-relaxed">
-                                    Livraison express disponible pour que votre cadeau arrive au bon moment, même en dernière minute.
-                                </p>
-                            </div>
+                            <button
+                                onClick={prevSlide}
+                                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
+                            >
+                                <ChevronLeft className="h-6 w-6 text-white" />
+                            </button>
+                            <button
+                                onClick={nextSlide}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
+                            >
+                                <ChevronRight className="h-6 w-6 text-white" />
+                            </button>
 
-                            <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <Shield className="h-10 w-10 text-white" />
-                                </div>
-                                <h3 className="text-xl font-semibold mb-3 text-white">Qualité Garantie</h3>
-                                <p className="text-white/90 leading-relaxed">
-                                    Tous nos produits sont sélectionnés avec soin par nos partenaires fournisseurs de confiance.
-                                </p>
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
+                                {carouselImages.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentSlide(index)}
+                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
+                                            ? 'bg-white w-8'
+                                            : 'bg-white/50 hover:bg-white/75'
+                                            }`}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
                 </section>
+
 
                 {/* Featured Products */}
                 <section className="py-20">
@@ -377,74 +384,8 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* Bottom Carousel Section */}
-                <section className="py-16">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
-                            {carouselImages.map((image, index) => (
-                                <div
-                                    key={index}
-                                    className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
-                                        }`}
-                                >
-                                    <img
-                                        src={image.url}
-                                        alt={image.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                        <div className="text-center text-white px-6">
-                                            <h3 className="text-5xl font-bold mb-4">{image.title}</h3>
-                                            <p className="text-2xl">{image.description}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
 
-                            <button
-                                onClick={prevSlide}
-                                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
-                            >
-                                <ChevronLeft className="h-6 w-6 text-white" />
-                            </button>
-                            <button
-                                onClick={nextSlide}
-                                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
-                            >
-                                <ChevronRight className="h-6 w-6 text-white" />
-                            </button>
 
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
-                                {carouselImages.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setCurrentSlide(index)}
-                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
-                                            ? 'bg-white w-8'
-                                            : 'bg-white/50 hover:bg-white/75'
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* CTA Section */}
-                <section className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white py-20">
-                    <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                        <h2 className="text-4xl font-bold mb-4">
-                            Prêt à Créer un Cadeau Unique ?
-                        </h2>
-                        <p className="text-xl mb-8 text-white/90">
-                            Commencez dès maintenant à composer le cadeau parfait
-                        </p>
-                        <button className="bg-white text-purple-600 px-10 py-4 rounded-full font-bold hover:bg-white/90 hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2 shadow-xl">
-                            <span>Composer Maintenant</span>
-                            <ArrowRight className="h-5 w-5" />
-                        </button>
-                    </div>
-                </section>
             </div>
         </div>
     );
