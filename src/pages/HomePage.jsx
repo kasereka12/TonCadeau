@@ -19,7 +19,7 @@ const products = [
         description: 'Créez une ambiance chaleureuse avec nos bougies faites à la main',
         price: 34.99,
         rating: 4.9,
-        image: 'https://images.unsplash.com/photo-1602874801006-ec428a8ee9fb?w=400&h=300&fit=crop'
+        image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop'
     },
     {
         id: 3,
@@ -85,14 +85,14 @@ const HomePage = () => {
     useEffect(() => {
         const heroTimer = setInterval(() => {
             setHeroSlide((prev) => (prev + 1) % heroImages.length);
-        }, 5000);
+        }, 10000);
         return () => clearInterval(heroTimer);
     }, []);
 
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-        }, 5000);
+        }, 10000);
         return () => clearInterval(timer);
     }, []);
 
@@ -334,17 +334,17 @@ const HomePage = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
                             {featuredProducts.map((product) => (
-                                <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                                <div key={product.id} className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-2xl overflow-hidden hover:bg-white/20 hover:border-[#6fc7d9] hover:scale-105 transition-all duration-300 cursor-pointer flex flex-col">
                                     <img
                                         src={product.image}
                                         alt={product.name}
                                         className="w-full h-48 object-cover"
                                     />
-                                    <div className="p-5">
-                                        <h3 className="font-bold text-lg mb-2 text-gray-800">{product.name}</h3>
-                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                                    <div className="p-5 ">
+                                        <h3 className="font-bold text-lg mb-2 text-white">{product.name}</h3>
+                                        <p className="text-white text-sm mb-3 line-clamp-2">{product.description}</p>
                                         <div className="flex items-center mb-3">
                                             <div className="flex text-yellow-400">
                                                 {[...Array(5)].map((_, i) => (
@@ -354,15 +354,15 @@ const HomePage = () => {
                                                     />
                                                 ))}
                                             </div>
-                                            <span className="text-sm text-gray-600 ml-2">({product.rating})</span>
+                                            <span className="text-sm text-white ml-2">({product.rating})</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                                                 {product.price}€
                                             </span>
-                                            <button className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 transition-all duration-300">
+                                            <Link to={`/products/${product.id}`} className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 transition-all duration-300">
                                                 Voir
-                                            </button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
