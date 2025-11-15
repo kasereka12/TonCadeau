@@ -1,27 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowRight, Star, Truck, Shield, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Truck, Shield, Heart, User } from 'lucide-react';
-import { Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { products } from '../data/products';
-import man from '../../public/homme.jpg';
-import women from '../../public/jeunefille.jpg';
 
-import '@fortawesome/fontawesome-free/css/all.min.css';
+// Mock products data
+const products = [
+    {
+        id: 1,
+        name: 'Coffret Cadeau Luxe',
+        description: 'Un assortiment élégant de produits premium pour marquer les occasions spéciales',
+        price: 89.99,
+        rating: 4.8,
+        image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop'
+    },
+    {
+        id: 2,
+        name: 'Bougie Parfumée Artisanale',
+        description: 'Créez une ambiance chaleureuse avec nos bougies faites à la main',
+        price: 34.99,
+        rating: 4.9,
+        image: 'https://images.unsplash.com/photo-1602874801006-ec428a8ee9fb?w=400&h=300&fit=crop'
+    },
+    {
+        id: 3,
+        name: 'Coffret Thé Premium',
+        description: 'Une sélection de thés rares du monde entier dans un coffret élégant',
+        price: 45.99,
+        rating: 4.7,
+        image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop'
+    },
+    {
+        id: 4,
+        name: 'Ensemble Spa Relaxation',
+        description: 'Offrez un moment de détente avec ce coffret spa complet',
+        price: 65.99,
+        rating: 4.9,
+        image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&h=300&fit=crop'
+    }
+];
 
 const HomePage = () => {
     const featuredProducts = products.slice(0, 4);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [heroSlide, setHeroSlide] = useState(0);
+
+    // Images du hero carousel
+    const heroImages = [
+        {
+            url: '/bannier4.jpg',
+            title: 'Créez des Moments Inoubliables',
+            description: 'Des cadeaux personnalisés pour toutes les occasions'
+        },
+        {
+            url: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=1200&h=800&fit=crop',
+            title: 'Qualité Premium Garantie',
+            description: 'Des produits sélectionnés avec soin par nos experts'
+        },
+        {
+            url: 'https://images.unsplash.com/photo-1511556820780-d912e42b4980?w=1200&h=800&fit=crop',
+            title: 'Livraison Express Disponible',
+            description: 'Recevez vos cadeaux rapidement partout au Maroc'
+        }
+    ];
 
     // Images du carousel
     const carouselImages = [
         {
-            url: '/homme.jpg',
+            url: '/hero1.jpg',
             title: 'Cadeaux Personnalisés',
             description: 'Créez des moments inoubliables'
         },
         {
-            url: '/homme.jpg',
+            url: '/hero2.jpg',
             title: 'Qualité Premium',
             description: 'Des produits sélectionnés avec soin'
         },
@@ -31,12 +81,28 @@ const HomePage = () => {
             description: 'Recevez vos cadeaux en temps voulu'
         }
     ];
+
+    useEffect(() => {
+        const heroTimer = setInterval(() => {
+            setHeroSlide((prev) => (prev + 1) % heroImages.length);
+        }, 5000);
+        return () => clearInterval(heroTimer);
+    }, []);
+
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
         }, 5000);
         return () => clearInterval(timer);
     }, []);
+
+    const nextHeroSlide = () => {
+        setHeroSlide((prev) => (prev + 1) % heroImages.length);
+    };
+
+    const prevHeroSlide = () => {
+        setHeroSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+    };
 
     const nextSlide = () => {
         setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
@@ -45,37 +111,82 @@ const HomePage = () => {
     const prevSlide = () => {
         setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
     };
-    return (
-        <div className="min-h-screen">
-            {/* Hero Section */}
-            <section className="bannier from-pink-500 to-purple-600 text-white bg-gradient-to-r">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                    <div className="text-center">
-                        <h1 className="text-4xl md:text-6xl font-bold mb-8 text-white">
-                            Créez des Moments Inoubliables
-                        </h1>
 
-                        {/* Barre de recherche */}
-                        <div className="flex justify-center">
-                            <div className="relative w-full max-w-2xl">
-                                <input
-                                    type="text"
-                                    placeholder=" Recherchez un cadeau, une occasion ou une personne..."
-                                    className="w-full bg-white px-6 py-4 text-gray-900 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-300 text-lg placeholder-gray-500"
-                                />
-                                <button
-                                    className="absolute right-2 top-2 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition-transform duration-200"
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Hero Section with Carousel */}
+            <section className="relative h-screen overflow-hidden">
+                {/* Carousel Images */}
+                {heroImages.map((image, index) => (
+                    <div
+                        key={index}
+                        className={`absolute inset-0 transition-opacity duration-1000 ${index === heroSlide ? 'opacity-100' : 'opacity-0'
+                            }`}
+                    >
+                        <img
+                            src={image.url}
+                            alt={image.title}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-purple-600/70"></div>
+                    </div>
+                ))}
+
+                {/* Content Overlay */}
+                <div className="relative z-10 h-full flex items-center">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                        <div className="text-center">
+                            {/* Animated Title */}
+                            {heroImages.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className={`transition-all duration-700 ${index === heroSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'
+                                        }`}
                                 >
-                                    Rechercher
-                                </button>
+                                    <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+                                        {image.title}
+                                    </h1>
+                                    <p className="text-xl md:text-2xl text-white/90 mb-8">
+                                        {image.description}
+                                    </p>
+                                </div>
+                            ))}
+
+                            {/* Barre de recherche */}
+                            <div className="flex justify-center mt-8">
+                                <div className="relative w-full max-w-2xl">
+                                    <input
+                                        type="text"
+                                        placeholder="Recherchez un cadeau, une occasion ou une personne..."
+                                        className="w-full bg-white px-6 py-4 text-gray-900 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-300 text-lg placeholder-gray-500"
+                                    />
+                                    <button className="absolute right-2 top-2 bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition-transform duration-200">
+                                        Rechercher
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
+                {/* Indicators */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex space-x-3">
+                    {heroImages.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setHeroSlide(index)}
+                            className={`h-3 rounded-full transition-all duration-300 ${index === heroSlide
+                                ? 'bg-white w-10'
+                                : 'bg-white/50 hover:bg-white/75 w-3'
+                                }`}
+                        />
+                    ))}
+                </div>
             </section>
 
-
-            <div className='main-section'>
+            {/* Main Content */}
+            <div className="main-section">
                 {/* Gift Recipient Section */}
                 <section className="py-10 flex justify-center items-center min-h-screen">
                     <div className="max-w-7xl w-full px-4 sm:px-4 lg:px-4">
@@ -164,7 +275,6 @@ const HomePage = () => {
                     </div>
                 </section>
 
-
                 {/* Features Section */}
                 <section className="py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -179,7 +289,7 @@ const HomePage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                     <Heart className="h-10 w-10 text-white" />
                                 </div>
                                 <h3 className="text-xl font-semibold mb-3 text-white">Personnalisation</h3>
@@ -189,7 +299,7 @@ const HomePage = () => {
                             </div>
 
                             <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                     <Truck className="h-10 w-10 text-white" />
                                 </div>
                                 <h3 className="text-xl font-semibold mb-3 text-white">Livraison Rapide</h3>
@@ -199,7 +309,7 @@ const HomePage = () => {
                             </div>
 
                             <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-                                <div className="bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <div className="bg-gradient-to-br from-cyan-400 to-purple-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                     <Shield className="h-10 w-10 text-white" />
                                 </div>
                                 <h3 className="text-xl font-semibold mb-3 text-white">Qualité Garantie</h3>
@@ -225,7 +335,7 @@ const HomePage = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {featuredProducts.map((product) => (
-                                <div key={product.id} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/30">
+                                <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300">
                                     <img
                                         src={product.image}
                                         alt={product.name}
@@ -246,15 +356,12 @@ const HomePage = () => {
                                             <span className="text-sm text-gray-600 ml-2">({product.rating})</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                                            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                                                 {product.price}€
                                             </span>
-                                            <Link
-                                                to={`/products/${product.id}`}
-                                                className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-5 py-2 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 transition-all duration-300"
-                                            >
+                                            <button className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 transition-all duration-300">
                                                 Voir
-                                            </Link>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -262,21 +369,18 @@ const HomePage = () => {
                         </div>
 
                         <div className="text-center mt-10">
-                            <Link
-                                to="/products"
-                                className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-10 py-4 rounded-full font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2"
-                            >
+                            <button className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-10 py-4 rounded-full font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2">
                                 <span>Voir Tous les Produits</span>
                                 <ArrowRight className="h-5 w-5" />
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </section>
-                {/* Carousel Section */}
+
+                {/* Bottom Carousel Section */}
                 <section className="py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
-                            {/* Images */}
                             {carouselImages.map((image, index) => (
                                 <div
                                     key={index}
@@ -288,7 +392,7 @@ const HomePage = () => {
                                         alt={image.title}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0  flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                         <div className="text-center text-white px-6">
                                             <h3 className="text-5xl font-bold mb-4">{image.title}</h3>
                                             <p className="text-2xl">{image.description}</p>
@@ -297,7 +401,6 @@ const HomePage = () => {
                                 </div>
                             ))}
 
-                            {/* Navigation Buttons */}
                             <button
                                 onClick={prevSlide}
                                 className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 hover:scale-110"
@@ -311,7 +414,6 @@ const HomePage = () => {
                                 <ChevronRight className="h-6 w-6 text-white" />
                             </button>
 
-                            {/* Indicators */}
                             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
                                 {carouselImages.map((_, index) => (
                                     <button
@@ -328,9 +430,8 @@ const HomePage = () => {
                     </div>
                 </section>
 
-
                 {/* CTA Section */}
-                <section className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-20">
+                <section className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white py-20">
                     <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                         <h2 className="text-4xl font-bold mb-4">
                             Prêt à Créer un Cadeau Unique ?
@@ -338,17 +439,13 @@ const HomePage = () => {
                         <p className="text-xl mb-8 text-white/90">
                             Commencez dès maintenant à composer le cadeau parfait
                         </p>
-                        <Link
-                            to="/compose-gift"
-                            className="bg-white text-[#a7549b] px-10 py-4 rounded-full font-bold hover:bg-white/90 hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2 shadow-xl"
-                        >
+                        <button className="bg-white text-purple-600 px-10 py-4 rounded-full font-bold hover:bg-white/90 hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2 shadow-xl">
                             <span>Composer Maintenant</span>
                             <ArrowRight className="h-5 w-5" />
-                        </Link>
+                        </button>
                     </div>
                 </section>
             </div>
-
         </div>
     );
 };
