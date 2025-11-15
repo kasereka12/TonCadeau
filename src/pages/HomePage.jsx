@@ -16,17 +16,17 @@ const HomePage = () => {
     // Images du carousel
     const carouselImages = [
         {
-            url: '../../public/homme.jpg',
+            url: '/homme.jpg',
             title: 'Cadeaux Personnalisés',
             description: 'Créez des moments inoubliables'
         },
         {
-            url: '../../public/homme.jpg',
+            url: '/homme.jpg',
             title: 'Qualité Premium',
             description: 'Des produits sélectionnés avec soin'
         },
         {
-            url: '../../public/jeunefille.jpg',
+            url: '/jeunefille.jpg',
             title: 'Livraison Rapide',
             description: 'Recevez vos cadeaux en temps voulu'
         }
