@@ -41,7 +41,7 @@ const Header = () => {
                             className={`hidden md:inline m-0 text-2xl font-bold transition-colors duration-300 ${isScrolled ? 'text-white' : 'text-white'
                                 }`}
                         >
-                            TonCadeau.fr
+                            TonCadeau.net
                         </span>
                     </Link>
 
