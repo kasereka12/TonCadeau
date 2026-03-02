@@ -51,6 +51,7 @@ const categoryOptions = [
     { value: 'nourriture', label: 'Friandise & nourriture' },
     { value: 'art', label: 'Art' },
     { value: 'arcade', label: 'Arcade' },
+    { value: 'evenement', label: 'Événement' },
 ];
 
 const sortOptions = [
@@ -118,7 +119,7 @@ const ProductsPage = () => {
                         >
                             Nos Produits
                         </h1>
-                        <p className="text-base text-slate-400 font-light max-w-md mx-auto leading-relaxed">
+                        <p style={{ color: 'rgba(255,255,255,0.65)' }} className="text-base font-light max-w-md mx-auto leading-relaxed">
                             Découvrez notre sélection de produits de qualité pour composer des cadeaux parfaits
                         </p>
                     </div>
@@ -136,19 +137,20 @@ const ProductsPage = () => {
                         <div className="flex flex-col md:flex-row gap-3">
                             {/* Search */}
                             <div className="relative flex-1">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'rgba(255,255,255,0.4)' }} />
                                 <input
                                     type="text"
                                     placeholder="Rechercher un produit..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-white/[0.04] text-white pl-11 pr-4 py-3 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300"
-                                    style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                                    className="w-full bg-white/[0.04] text-white pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300"
+                                    style={{ border: '1px solid rgba(255,255,255,0.06)', color: '#ffffff' }}
                                 />
                                 {searchTerm && (
                                     <button
                                         onClick={() => setSearchTerm('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white transition-colors"
+                                        style={{ color: 'rgba(255,255,255,0.5)' }}
                                     >
                                         <X className="h-4 w-4" />
                                     </button>
@@ -160,16 +162,16 @@ const ProductsPage = () => {
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="w-full appearance-none bg-white/[0.04] text-slate-300 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300 cursor-pointer"
+                                    className="w-full appearance-none bg-white/[0.04] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300 cursor-pointer"
                                     style={{ border: '1px solid rgba(255,255,255,0.06)' }}
                                 >
                                     {categoryOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                                        <option key={opt.value} value={opt.value} style={{ background: '#0f172a', color: '#ffffff' }}>
                                             {opt.label}
                                         </option>
                                     ))}
                                 </select>
-                                <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                                <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'rgba(255,255,255,0.4)' }} />
                             </div>
 
                             {/* Sort */}
@@ -177,11 +179,11 @@ const ProductsPage = () => {
                                 <select
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full appearance-none bg-white/[0.04] text-slate-300 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300 cursor-pointer"
+                                    className="w-full appearance-none bg-white/[0.04] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all duration-300 cursor-pointer"
                                     style={{ border: '1px solid rgba(255,255,255,0.06)' }}
                                 >
                                     {sortOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                                        <option key={opt.value} value={opt.value} style={{ background: '#0f172a', color: '#ffffff' }}>
                                             {opt.label}
                                         </option>
                                     ))}
@@ -192,7 +194,7 @@ const ProductsPage = () => {
                         {/* Active filters indicator */}
                         {hasActiveFilters && (
                             <div className="flex items-center gap-3 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                                <span className="text-xs text-slate-500">Filtres actifs</span>
+                                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>Filtres actifs</span>
                                 <button
                                     onClick={clearFilters}
                                     className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
@@ -207,7 +209,7 @@ const ProductsPage = () => {
                 {/* ── RESULTS COUNT ── */}
                 <FadeIn delay={0.15}>
                     <div className="mb-8">
-                        <p className="text-sm text-slate-500">
+                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
                             <span className="text-white font-medium">{filteredProducts.length}</span>
                             {' '}produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
                         </p>
@@ -263,7 +265,7 @@ const ProductsPage = () => {
                                             </h3>
                                         </Link>
 
-                                        <p className="text-[13px] text-slate-500 font-light leading-relaxed mb-4 line-clamp-2">
+                                        <p className="text-[13px] font-light leading-relaxed mb-4 line-clamp-2" style={{ color: 'rgba(255,255,255,0.55)' }}>
                                             {product.description}
                                         </p>
 
@@ -272,13 +274,11 @@ const ProductsPage = () => {
                                             {[...Array(5)].map((_, j) => (
                                                 <Star
                                                     key={j}
-                                                    className={`h-3.5 w-3.5 ${j < Math.floor(product.rating)
-                                                            ? 'text-amber-400 fill-amber-400'
-                                                            : 'text-white/10'
-                                                        }`}
+                                                    className={`h-3.5 w-3.5 ${j < Math.floor(product.rating) ? 'text-amber-400 fill-amber-400' : ''}`}
+                                                    style={j >= Math.floor(product.rating) ? { color: 'rgba(255,255,255,0.12)' } : {}}
                                                 />
                                             ))}
-                                            <span className="text-[11px] text-slate-600 ml-1.5">{product.rating}</span>
+                                            <span className="ml-1.5" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>{product.rating}</span>
                                         </div>
 
                                         {/* Price + Stock */}
@@ -293,8 +293,8 @@ const ProductsPage = () => {
                                             >
                                                 {product.price} €
                                             </span>
-                                            <span className="text-[11px] text-slate-600 font-medium px-2 py-0.5 rounded-full"
-                                                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                                                style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
                                             >
                                                 Stock: {product.stock}
                                             </span>
@@ -304,10 +304,10 @@ const ProductsPage = () => {
                                         <div className="flex gap-2 mt-auto">
                                             <Link
                                                 to={`/products/${product.id}`}
-                                                className="flex-1 text-center text-sm font-medium text-slate-400 hover:text-white py-2.5 rounded-xl transition-all duration-300"
-                                                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                                                className="flex-1 text-center text-sm font-medium py-2.5 rounded-xl transition-all duration-300"
+                                                style={{ color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#ffffff'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
                                             >
                                                 Personnaliser
                                             </Link>
@@ -343,10 +343,10 @@ const ProductsPage = () => {
                                 className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
                                 style={{ background: 'linear-gradient(135deg, rgba(56,201,223,0.1), rgba(139,92,246,0.1))' }}
                             >
-                                <Search className="h-8 w-8 text-slate-500" />
+                                <Search className="h-8 w-8" style={{ color: 'rgba(255,255,255,0.45)' }} />
                             </div>
                             <p className="text-white text-lg font-medium mb-2">Aucun produit trouvé</p>
-                            <p className="text-slate-500 text-sm mb-8 max-w-xs mx-auto">
+                            <p style={{ color: 'rgba(255,255,255,0.55)' }} className="text-sm mb-8 max-w-xs mx-auto">
                                 Essayez de modifier vos critères de recherche
                             </p>
                             <button
