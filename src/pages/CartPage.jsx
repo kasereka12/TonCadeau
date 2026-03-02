@@ -1,7 +1,33 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2, CreditCard, Truck, MapPin } from 'lucide-react';
+import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════ */
+
+const t = {
+    bg: '#020617',
+    card: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderHover: '1px solid rgba(255,255,255,0.12)',
+    input: {
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        color: '#ffffff',
+    },
+    text: '#ffffff',
+    textSec: 'rgba(255,255,255,0.6)',
+    textTer: 'rgba(255,255,255,0.4)',
+    cyan: '#38c9df',
+    gradient: 'linear-gradient(135deg, #38c9df, #8b5cf6)',
+    glow: '0 4px 20px rgba(56,201,223,0.2)',
+};
+
+/* ═══════════════════════════════════════════════
+   CART PAGE
+   ═══════════════════════════════════════════════ */
 
 const CartPage = () => {
     const {
@@ -27,26 +53,16 @@ const CartPage = () => {
     };
 
     const handleDeliveryInfoChange = (field, value) => {
-        setDeliveryInfo({
-            ...deliveryInfo,
-            [field]: value
-        });
+        setDeliveryInfo({ ...deliveryInfo, [field]: value });
     };
 
     const handleCheckout = () => {
-        if (items.length === 0) {
-            alert('Votre panier est vide !');
-            return;
-        }
-
+        if (items.length === 0) return;
         if (!deliveryInfo.recipientName || !deliveryInfo.deliveryAddress) {
             alert('Veuillez remplir les informations de livraison.');
             return;
         }
-
         setIsCheckingOut(true);
-
-        // Simulation du processus de commande
         setTimeout(() => {
             alert('Commande passée avec succès ! Votre cadeau sera livré bientôt.');
             clearCart();
@@ -54,20 +70,40 @@ const CartPage = () => {
         }, 2000);
     };
 
+    /* ── Label component ── */
+    const Label = ({ children, required }) => (
+        <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
+            {children}{required && <span style={{ color: t.cyan }}> *</span>}
+        </label>
+    );
+
+    /* ── Input class string ── */
+    const inputClass = "w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none transition-all duration-300";
+
+    /* ══════ EMPTY STATE ══════ */
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#6fc7d9]/10 via-white to-[#a7549b]/10 flex items-center justify-center">
-                <div className="text-center bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-12 border border-white/50">
-                    <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] rounded-full flex items-center justify-center">
-                        <span className="text-6xl">🛒</span>
+            <div className="main-section min-h-screen flex items-center justify-center px-6" style={{ background: t.bg, fontFamily: "'DM Sans', sans-serif" }}>
+                <div className="text-center max-w-md">
+                    <div
+                        className="w-24 h-24 mx-auto mb-8 rounded-full flex items-center justify-center"
+                        style={{ background: 'rgba(56,201,223,0.08)' }}
+                    >
+                        <ShoppingCart className="h-10 w-10" style={{ color: 'rgba(255,255,255,0.4)' }} />
                     </div>
-                    <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                    <h1
+                        className="text-3xl font-bold text-white mb-3"
+                        style={{ fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.3px' }}
+                    >
                         Votre panier est vide
                     </h1>
-                    <p className="text-gray-600 mb-8 text-lg">Découvrez nos produits et composez le cadeau parfait !</p>
+                    <p style={{ color: t.textSec, fontSize: '15px', fontWeight: 300, lineHeight: 1.6, marginBottom: '32px' }}>
+                        Découvrez nos produits et composez le cadeau parfait !
+                    </p>
                     <Link
                         to="/products"
-                        className="inline-block bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-10 py-4 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300"
+                        className="inline-flex items-center gap-2 text-white px-8 py-3.5 rounded-full text-sm font-semibold transition-shadow duration-300"
+                        style={{ background: t.gradient, boxShadow: t.glow }}
                     >
                         Voir les Produits
                     </Link>
@@ -76,70 +112,114 @@ const CartPage = () => {
         );
     }
 
+    /* ══════ CART WITH ITEMS ══════ */
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#6fc7d9]/10 via-white to-[#a7549b]/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                    Mon Panier
-                </h1>
+        <div className="main-section min-h-screen" style={{ background: t.bg, fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="max-w-7xl mx-auto px-6 py-12">
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Cart Items */}
+                {/* Header */}
+                <div className="mb-10">
+                    <span style={{ color: t.cyan, fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'inline-block', marginBottom: '12px' }}>
+                        Panier
+                    </span>
+                    <h1
+                        className="text-3xl md:text-4xl font-bold text-white"
+                        style={{ fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.3px' }}
+                    >
+                        Mon Panier
+                    </h1>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    {/* ── CART ITEMS ── */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
-                            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Articles dans votre panier</h2>
+                        <div className="rounded-2xl p-6" style={{ background: t.card, border: t.border }}>
+                            <h2 className="text-lg font-semibold text-white mb-6">
+                                Articles ({items.length})
+                            </h2>
 
                             <div className="space-y-4">
                                 {items.map((item) => (
-                                    <div key={item.id} className="flex items-center space-x-4 p-4 border-2 border-[#6fc7d9]/20 rounded-xl hover:border-[#a7549b]/40 hover:shadow-lg transition-all duration-300 bg-white/50">
+                                    <div
+                                        key={item.id}
+                                        className="flex items-center gap-4 p-4 rounded-xl transition-all duration-300"
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+                                    >
+                                        {/* Image */}
                                         <img
                                             src={item.image}
                                             alt={item.name}
-                                            className="w-24 h-24 object-cover rounded-xl shadow-md"
+                                            className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
                                         />
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-lg text-gray-800">{item.name}</h3>
-                                            <p className="text-gray-600 text-sm">{item.description}</p>
-                                            <p className="font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent text-lg mt-1">
-                                                {item.price}€
-                                            </p>
+
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-white font-semibold text-sm mb-1 truncate">{item.name}</h3>
+                                            <p style={{ color: t.textTer, fontSize: '12px', fontWeight: 300 }} className="truncate">{item.description}</p>
+                                            <span
+                                                className="text-sm font-bold mt-1 inline-block"
+                                                style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                                            >
+                                                {item.price} €
+                                            </span>
                                         </div>
 
-                                        <div className="flex items-center space-x-2">
+                                        {/* Quantity */}
+                                        <div className="flex items-center gap-2 flex-shrink-0">
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                                className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6fc7d9]/20 to-[#a7549b]/20 flex items-center justify-center hover:from-[#6fc7d9]/30 hover:to-[#a7549b]/30 hover:scale-110 transition-all duration-300"
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                                             >
-                                                <Minus className="h-4 w-4 text-[#a7549b]" />
+                                                <Minus className="h-3.5 w-3.5 text-white" />
                                             </button>
-                                            <span className="w-10 text-center font-bold text-lg">{item.quantity}</span>
+                                            <span className="w-8 text-center text-white font-semibold text-sm">{item.quantity}</span>
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                                className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6fc7d9]/20 to-[#a7549b]/20 flex items-center justify-center hover:from-[#6fc7d9]/30 hover:to-[#a7549b]/30 hover:scale-110 transition-all duration-300"
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                                             >
-                                                <Plus className="h-4 w-4 text-[#a7549b]" />
+                                                <Plus className="h-3.5 w-3.5 text-white" />
                                             </button>
                                         </div>
 
-                                        <div className="text-right">
-                                            <p className="font-bold text-xl bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                                {(item.price * item.quantity).toFixed(2)}€
-                                            </p>
+                                        {/* Total + Delete */}
+                                        <div className="text-right flex-shrink-0">
+                                            <span
+                                                className="text-base font-bold block"
+                                                style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                                            >
+                                                {(item.price * item.quantity).toFixed(2)} €
+                                            </span>
                                             <button
                                                 onClick={() => removeFromCart(item.id)}
-                                                className="text-red-500 hover:text-red-700 hover:scale-110 mt-2 transition-all duration-300"
+                                                className="mt-1.5 transition-colors duration-200"
+                                                style={{ color: 'rgba(255,255,255,0.3)' }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; }}
                                             >
-                                                <Trash2 className="h-5 w-5" />
+                                                <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-6 pt-6 border-t-2 border-[#6fc7d9]/20">
+                            {/* Clear cart */}
+                            <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                 <button
                                     onClick={clearCart}
-                                    className="text-red-500 hover:text-red-700 font-semibold hover:scale-105 transition-all duration-300"
+                                    className="text-sm font-medium transition-colors duration-200"
+                                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
                                 >
                                     Vider le panier
                                 </button>
@@ -147,154 +227,155 @@ const CartPage = () => {
                         </div>
                     </div>
 
-                    {/* Checkout Form */}
+                    {/* ── CHECKOUT SIDEBAR ── */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 sticky top-8 border border-white/50">
-                            <h2 className="text-xl font-bold mb-6 flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] flex items-center justify-center mr-3">
-                                    <CreditCard className="h-5 w-5 text-white" />
+                        <div className="rounded-2xl p-6 sticky top-24" style={{ background: t.card, border: t.border }}>
+
+                            {/* Title */}
+                            <div className="flex items-center gap-3 mb-6">
+                                <div
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center"
+                                    style={{ background: 'rgba(56,201,223,0.1)' }}
+                                >
+                                    <CreditCard className="h-4 w-4" style={{ color: t.cyan }} />
                                 </div>
-                                <span className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                    Finaliser la Commande
-                                </span>
-                            </h2>
+                                <h2 className="text-lg font-semibold text-white">Finaliser</h2>
+                            </div>
 
                             {/* Gift Message */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Message Cadeau
-                                </label>
+                            <div className="mb-5">
+                                <Label>Message cadeau</Label>
                                 <textarea
                                     value={giftMessage}
                                     onChange={(e) => setGiftMessage(e.target.value)}
                                     placeholder="Écrivez un message personnalisé..."
-                                    className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
+                                    className={inputClass}
+                                    style={t.input}
                                     rows="3"
                                 />
                             </div>
 
-                            {/* Delivery Information */}
+                            {/* Delivery */}
                             <div className="mb-6">
-                                <h3 className="text-lg font-bold mb-4 flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] flex items-center justify-center mr-2">
-                                        <Truck className="h-4 w-4 text-white" />
+                                <div className="flex items-center gap-2.5 mb-4">
+                                    <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: 'rgba(56,201,223,0.1)' }}>
+                                        <Truck className="h-3.5 w-3.5" style={{ color: t.cyan }} />
                                     </div>
-                                    Informations de Livraison
-                                </h3>
+                                    <h3 className="text-sm font-semibold text-white">Livraison</h3>
+                                </div>
 
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                            Nom du destinataire *
-                                        </label>
+                                        <Label required>Nom du destinataire</Label>
                                         <input
                                             type="text"
                                             value={deliveryInfo.recipientName}
                                             onChange={(e) => handleDeliveryInfoChange('recipientName', e.target.value)}
-                                            className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                            required
+                                            className={inputClass}
+                                            style={t.input}
                                         />
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                            Email du destinataire
-                                        </label>
+                                        <Label>Email du destinataire</Label>
                                         <input
                                             type="email"
                                             value={deliveryInfo.recipientEmail}
                                             onChange={(e) => handleDeliveryInfoChange('recipientEmail', e.target.value)}
-                                            className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
+                                            className={inputClass}
+                                            style={t.input}
                                         />
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                            Adresse de livraison *
-                                        </label>
+                                        <Label required>Adresse de livraison</Label>
                                         <textarea
                                             value={deliveryInfo.deliveryAddress}
                                             onChange={(e) => handleDeliveryInfoChange('deliveryAddress', e.target.value)}
-                                            className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                            rows="3"
-                                            required
+                                            className={inputClass}
+                                            style={t.input}
+                                            rows="2"
                                         />
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                                Date de livraison
-                                            </label>
+                                            <Label>Date</Label>
                                             <input
                                                 type="date"
                                                 value={deliveryInfo.deliveryDate}
                                                 onChange={(e) => handleDeliveryInfoChange('deliveryDate', e.target.value)}
-                                                className="w-full px-3 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
+                                                className={inputClass}
+                                                style={t.input}
                                             />
                                         </div>
-
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                                Heure
-                                            </label>
+                                            <Label>Heure</Label>
                                             <select
                                                 value={deliveryInfo.deliveryTime}
                                                 onChange={(e) => handleDeliveryInfoChange('deliveryTime', e.target.value)}
-                                                className="w-full px-3 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all bg-white"
+                                                className={inputClass + " cursor-pointer appearance-none"}
+                                                style={t.input}
                                             >
-                                                <option value="">Choisir</option>
-                                                <option value="morning">Matin (9h-12h)</option>
-                                                <option value="afternoon">Après-midi (14h-17h)</option>
-                                                <option value="evening">Soirée (17h-20h)</option>
+                                                <option value="" style={{ background: '#0f172a', color: '#fff' }}>Choisir</option>
+                                                <option value="morning" style={{ background: '#0f172a', color: '#fff' }}>Matin (9h-12h)</option>
+                                                <option value="afternoon" style={{ background: '#0f172a', color: '#fff' }}>Après-midi (14h-17h)</option>
+                                                <option value="evening" style={{ background: '#0f172a', color: '#fff' }}>Soirée (17h-20h)</option>
                                             </select>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Order Summary */}
-                            <div className="border-t-2 border-[#6fc7d9]/20 pt-6 mb-6">
+                            {/* Summary */}
+                            <div className="pt-5 mb-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between text-gray-700">
-                                        <span className="font-medium">Sous-total:</span>
-                                        <span className="font-semibold">{getTotalPrice().toFixed(2)}€</span>
+                                    <div className="flex justify-between">
+                                        <span style={{ color: t.textSec, fontSize: '14px' }}>Sous-total</span>
+                                        <span className="text-white font-medium text-sm">{getTotalPrice().toFixed(2)} €</span>
                                     </div>
-                                    <div className="flex justify-between text-gray-700">
-                                        <span className="font-medium">Livraison:</span>
-                                        <span className="font-semibold text-green-600">Gratuite</span>
+                                    <div className="flex justify-between">
+                                        <span style={{ color: t.textSec, fontSize: '14px' }}>Livraison</span>
+                                        <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 500 }}>Gratuite</span>
                                     </div>
-                                    <div className="flex justify-between text-xl font-bold border-t-2 border-[#6fc7d9]/30 pt-3">
-                                        <span>Total:</span>
-                                        <span className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                            {getTotalPrice().toFixed(2)}€
+                                    <div className="flex justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                        <span className="text-white font-semibold">Total</span>
+                                        <span
+                                            className="text-lg font-bold"
+                                            style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                                        >
+                                            {getTotalPrice().toFixed(2)} €
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Checkout Button */}
+                            {/* CTA */}
                             <button
                                 onClick={handleCheckout}
                                 disabled={isCheckingOut}
-                                className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2"
+                                className="w-full text-white py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: t.gradient, boxShadow: t.glow }}
+                                onMouseEnter={(e) => { if (!isCheckingOut) e.currentTarget.style.boxShadow = '0 8px 32px rgba(56,201,223,0.3)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = t.glow; }}
                             >
                                 {isCheckingOut ? (
                                     <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
                                         <span>Traitement...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <CreditCard className="h-5 w-5" />
+                                        <CreditCard className="h-4 w-4" />
                                         <span>Passer la Commande</span>
                                     </>
                                 )}
                             </button>
 
-                            <div className="mt-4 p-3 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
-                                <p className="text-xs text-gray-600 text-center font-medium">
-                                    🔒 Paiement sécurisé - 🚚 Livraison gratuite
+                            {/* Trust badge */}
+                            <div
+                                className="mt-4 py-3 px-4 rounded-xl text-center"
+                                style={{ background: 'rgba(56,201,223,0.05)', border: '1px solid rgba(56,201,223,0.08)' }}
+                            >
+                                <p style={{ color: t.textTer, fontSize: '12px', fontWeight: 500 }}>
+                                    Paiement sécurisé · Livraison gratuite
                                 </p>
                             </div>
                         </div>
