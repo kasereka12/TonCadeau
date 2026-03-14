@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Store, ChevronDown, UserPlus } from 'lucide-react';
+import { ShoppingCart, User, Store, ChevronDown, UserPlus, LogOut, LayoutDashboard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import logo from '../../public/logo.png';
@@ -12,152 +12,191 @@ const Header = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const role = user?.user_metadata?.role as string | undefined;
+    const role         = user?.user_metadata?.role as string | undefined;
+    const displayName  = (user?.user_metadata?.full_name ?? user?.email ?? '') as string;
+    const initials     = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+    const cartCount    = getTotalItems();
 
     useEffect(() => {
-        const handleScroll = () => setIsScrolled(window.scrollY > 100);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        const onScroll = () => setIsScrolled(window.scrollY > 60);
+        window.addEventListener('scroll', onScroll);
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        const onClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
                 setDropdownOpen(false);
-            }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener('mousedown', onClickOutside);
+        return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
 
-    const headerStyle = {
-        background: isScrolled ? 'rgba(255,255,255,0.01)' : 'linear-gradient(135deg, #aa5a9eff 40%, #6fc7d9 100%)',
-    };
-
-    const linkClass = 'text-white hover:text-[#6fc7d9] transition-colors duration-300';
+    const close = () => setDropdownOpen(false);
 
     return (
         <header
-            className={`shadow-md sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'backdrop-blur-md' : ''}`}
-            style={headerStyle}
+            className="sticky top-0 z-50 transition-all duration-300"
+            style={{
+                background: isScrolled
+                    ? 'rgba(170,90,158,0.55)'
+                    : 'linear-gradient(135deg, #aa5a9e 0%, #8a4db0 50%, #6fc7d9 100%)',
+                backdropFilter: isScrolled ? 'blur(18px)' : 'none',
+                WebkitBackdropFilter: isScrolled ? 'blur(18px)' : 'none',
+                borderBottom: isScrolled ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
+                boxShadow: isScrolled ? '0 4px 30px rgba(0,0,0,0.15)' : '0 2px 20px rgba(0,0,0,0.1)',
+            }}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
+                <div className="flex items-center justify-between h-[68px] gap-6">
 
-                    {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2">
-                        <img src={logo} alt="TonCadeau.fr Logo" className="h-30 w-25" />
-                        <span className="hidden md:inline text-2xl font-bold text-white">
-                            TonCadeau.net
+                    {/* ── Logo ── */}
+                    <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
+                        <img src={logo} alt="TonCadeau" className="h-10 w-auto" />
+                        <span className="hidden md:inline text-lg font-bold text-white tracking-tight group-hover:text-white/80 transition-colors">
+                            TonCadeau<span className="font-light opacity-75">.net</span>
                         </span>
                     </Link>
 
-                    {/* Actions */}
-                    <div className="flex items-center space-x-4">
-                        <Link to="/" className={`px-3 py-2 rounded-md text-sm font-medium ${linkClass}`}>
-                            Accueil
-                        </Link>
+                    {/* ── Nav links (center) ── */}
+                    <nav className="hidden md:flex items-center gap-1">
+                        {[
+                            { to: '/',              label: 'Accueil' },
+                            { to: '/products',      label: 'Produits' },
+                            { to: '/compose-gift',  label: 'Composer un cadeau' },
+                        ].map(link => (
+                            <Link
+                                key={link.to}
+                                to={link.to}
+                                className="px-4 py-2 rounded-full text-sm font-medium text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </nav>
 
-                        {/* Connexion Dropdown */}
-                        <div className="relative" ref={dropdownRef}>
-                            {user ? (
-                                /* Utilisateur connecté */
-                                <div className="flex items-center space-x-2">
-                                    <span className="hidden sm:inline text-sm text-white/80 font-medium">
-                                        {user.user_metadata?.full_name ?? user.email}
-                                    </span>
-                                    <button
-                                        onClick={() => setDropdownOpen(v => !v)}
-                                        className={`flex items-center space-x-1 ${linkClass}`}
-                                    >
-                                        <User className="h-5 w-5" />
-                                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
-                                    </button>
+                    {/* ── Right actions ── */}
+                    <div className="flex items-center gap-2">
 
-                                    {dropdownOpen && (
-                                        <div className="absolute right-0 top-10 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-                                            {role === 'supplier' && (
-                                                <Link
-                                                    to="/supplier"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-[#6fc7d9]/10 hover:to-[#a7549b]/10 transition-all"
-                                                >
-                                                    <Store className="h-4 w-4 text-[#a7549b]" />
-                                                    Mon tableau de bord
-                                                </Link>
-                                            )}
-                                            <button
-                                                onClick={() => { signOut(); setDropdownOpen(false); }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 transition-all"
-                                            >
-                                                <User className="h-4 w-4" />
-                                                Se déconnecter
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                /* Non connecté */
-                                <>
-                                    <button
-                                        onClick={() => setDropdownOpen(v => !v)}
-                                        className={`flex items-center space-x-1 ${linkClass}`}
-                                    >
-                                        <User className="h-5 w-5" />
-                                        <span className="hidden sm:inline text-sm font-medium">Se connecter</span>
-                                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {dropdownOpen && (
-                                        <div className="absolute right-0 top-10 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-                                            <div className="px-4 py-2 border-b border-gray-100">
-                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Connexion</p>
-                                            </div>
-                                            <Link
-                                                to="/login"
-                                                onClick={() => setDropdownOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-[#6fc7d9]/10 hover:to-[#a7549b]/10 transition-all"
-                                            >
-                                                <User className="h-4 w-4 text-[#6fc7d9]" />
-                                                Espace Client
-                                            </Link>
-                                            <Link
-                                                to="/supplier"
-                                                onClick={() => setDropdownOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-[#6fc7d9]/10 hover:to-[#a7549b]/10 transition-all"
-                                            >
-                                                <Store className="h-4 w-4 text-[#a7549b]" />
-                                                Espace Fournisseur
-                                            </Link>
-                                            <div className="px-4 py-2 border-t border-gray-100">
-                                                <Link
-                                                    to="/register"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                    className="flex items-center gap-2 text-xs text-[#a7549b] font-semibold hover:text-[#6fc7d9] transition-colors"
-                                                >
-                                                    <UserPlus className="h-3 w-3" />
-                                                    Créer un compte
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-
-                        {/* Panier */}
+                        {/* Cart */}
                         <Link
                             to="/cart"
-                            className={`relative flex items-center space-x-1 ${linkClass}`}
+                            className="relative flex items-center gap-2 px-4 py-2 rounded-full text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200"
                         >
                             <ShoppingCart className="h-5 w-5" />
                             <span className="hidden sm:inline text-sm font-medium">Panier</span>
-                            {getTotalItems() > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
-                                    {getTotalItems()}
+                            {cartCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-white text-[#aa5a9e] text-[11px] font-bold rounded-full flex items-center justify-center shadow-md">
+                                    {cartCount}
                                 </span>
                             )}
                         </Link>
+
+                        {/* Account dropdown */}
+                        <div className="relative" ref={dropdownRef}>
+                            {user ? (
+                                /* ── Connected ── */
+                                <button
+                                    onClick={() => setDropdownOpen(v => !v)}
+                                    className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 transition-all duration-200"
+                                >
+                                    {/* Avatar */}
+                                    <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                        {initials}
+                                    </div>
+                                    <span className="hidden sm:inline text-sm font-medium text-white max-w-[120px] truncate">
+                                        {displayName}
+                                    </span>
+                                    <ChevronDown className={`h-3.5 w-3.5 text-white/70 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            ) : (
+                                /* ── Not connected ── */
+                                <button
+                                    onClick={() => setDropdownOpen(v => !v)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-[#aa5a9e] hover:bg-white/90 font-semibold text-sm transition-all duration-200 shadow-md hover:shadow-lg"
+                                >
+                                    <User className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Se connecter</span>
+                                    <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            )}
+
+                            {/* ── Dropdown panel ── */}
+                            {dropdownOpen && (
+                                <div className="absolute right-0 top-[calc(100%+10px)] w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 overflow-hidden z-50"
+                                    style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.5)' }}>
+
+                                    {user ? (
+                                        /* Connected menu */
+                                        <>
+                                            {/* User info header */}
+                                            <div className="px-4 py-3 border-b border-gray-100/80">
+                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Mon compte</p>
+                                                <p className="text-sm font-medium text-gray-800 mt-0.5 truncate">{displayName}</p>
+                                            </div>
+
+                                            {role === 'supplier' && (
+                                                <Link to="/supplier" onClick={close}
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
+                                                    <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center group-hover:bg-[#aa5a9e]/20 transition-colors">
+                                                        <LayoutDashboard className="h-4 w-4 text-[#aa5a9e]" />
+                                                    </div>
+                                                    <span className="font-medium">Mon tableau de bord</span>
+                                                </Link>
+                                            )}
+
+                                            <div className="p-2 border-t border-gray-100/80">
+                                                <button
+                                                    onClick={() => { signOut(); close(); }}
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
+                                                    <LogOut className="h-4 w-4" />
+                                                    Se déconnecter
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        /* Guest menu */
+                                        <>
+                                            <div className="px-4 pt-3 pb-2">
+                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Connexion</p>
+                                            </div>
+
+                                            <div className="px-2 pb-1 space-y-0.5">
+                                                <Link to="/login" onClick={close}
+                                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-[#6fc7d9]/10 transition-all group">
+                                                    <div className="w-8 h-8 rounded-xl bg-[#6fc7d9]/10 flex items-center justify-center group-hover:bg-[#6fc7d9]/20 transition-colors">
+                                                        <User className="h-4 w-4 text-[#6fc7d9]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-gray-800">Espace Client</p>
+                                                        <p className="text-[11px] text-gray-400">Suivez vos commandes</p>
+                                                    </div>
+                                                </Link>
+
+                                                <Link to="/supplier" onClick={close}
+                                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-[#aa5a9e]/10 transition-all group">
+                                                    <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center group-hover:bg-[#aa5a9e]/20 transition-colors">
+                                                        <Store className="h-4 w-4 text-[#aa5a9e]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-gray-800">Espace Fournisseur</p>
+                                                        <p className="text-[11px] text-gray-400">Gérez vos produits</p>
+                                                    </div>
+                                                </Link>
+                                            </div>
+
+                                            <div className="mx-2 mb-2 mt-1 p-3 rounded-xl bg-gradient-to-r from-[#aa5a9e]/8 to-[#6fc7d9]/8 border border-[#aa5a9e]/10">
+                                                <Link to="/register" onClick={close}
+                                                    className="flex items-center gap-2 text-sm font-semibold text-[#aa5a9e] hover:text-[#6fc7d9] transition-colors">
+                                                    <UserPlus className="h-4 w-4" />
+                                                    Créer un compte gratuit
+                                                </Link>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

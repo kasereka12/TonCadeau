@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
+.animate-slide-in {
+    animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 
 .bannier {
   background-image: url('../public/bannier4.jpg');
