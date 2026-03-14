@@ -1,41 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, Star, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const products = [
-    {
-        id: 1,
-        name: 'Coffret Cadeau Luxe',
-        description: 'Un assortiment élégant de produits premium pour marquer les occasions spéciales',
-        price: 89.99,
-        rating: 4.8,
-        image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop'
-    },
-    {
-        id: 2,
-        name: 'Bougie Parfumée Artisanale',
-        description: 'Créez une ambiance chaleureuse avec nos bougies faites à la main',
-        price: 34.99,
-        rating: 4.9,
-        image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop'
-    },
-    {
-        id: 3,
-        name: 'Coffret Thé Premium',
-        description: 'Une sélection de thés rares du monde entier dans un coffret élégant',
-        price: 45.99,
-        rating: 4.7,
-        image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop'
-    },
-    {
-        id: 4,
-        name: 'Ensemble Spa Relaxation',
-        description: 'Offrez un moment de détente avec ce coffret spa complet',
-        price: 65.99,
-        rating: 4.9,
-        image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&h=300&fit=crop'
-    }
-];
+import { supabase } from '../lib/supabase';
+import type { Product } from '../types';
 
 const recipients = [
     { key: 'papa', icon: 'fa-solid fa-person', label: 'Homme' },
@@ -47,7 +14,7 @@ const recipients = [
 ];
 
 const HomePage = () => {
-    const featuredProducts = products.slice(0, 4);
+    const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlide, setHeroSlide] = useState(0);
 
@@ -74,6 +41,11 @@ const HomePage = () => {
         { url: '/header2.jpg', title: 'Qualité Premium', description: 'Des produits sélectionnés avec soin' },
         { url: '/header3.jpg', title: 'Livraison Rapide', description: 'Recevez vos cadeaux en temps voulu' }
     ];
+
+    useEffect(() => {
+        supabase.from('products').select('*').order('created_at', { ascending: false }).limit(4)
+            .then(({ data }) => { if (data) setFeaturedProducts(data as Product[]); });
+    }, []);
 
     useEffect(() => {
         const heroTimer = setInterval(() => {
@@ -252,9 +224,10 @@ const HomePage = () => {
                                 >
                                     <div className="overflow-hidden">
                                         <img
-                                            src={product.image}
+                                            src={product.image || '/placeholder.jpg'}
                                             alt={product.name}
                                             className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                                         />
                                     </div>
                                     <div className="p-5 flex flex-col flex-1">

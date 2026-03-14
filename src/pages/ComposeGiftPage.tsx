@@ -1,12 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, Heart, Star } from 'lucide-react';
-import { products, categories } from '../data/products';
+import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import type { CartItem, Product } from '../types';
 
 const ComposeGiftPage = () => {
+    const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
+
+    useEffect(() => {
+        supabase.from('products').select('*').order('created_at', { ascending: false })
+            .then(({ data }) => { if (data) setProducts(data as Product[]); });
+    }, []);
+
+    const categories = [
+        { id: 'all', name: 'Tous' },
+        ...Array.from(new Set(products.map(p => p.category))).map(c => ({ id: c, name: c }))
+    ];
     const [giftMessage, setGiftMessage] = useState('');
     const [recipientName, setRecipientName] = useState('');
     const { addToCart } = useCart();
@@ -108,9 +119,10 @@ const ComposeGiftPage = () => {
                                     <div key={product.id} className="border-2 border-[#6fc7d9]/20 rounded-xl p-4 hover:border-[#a7549b]/40 hover:shadow-xl transition-all duration-300 bg-white/50">
                                         <div className="flex space-x-4">
                                             <img
-                                                src={product.image}
+                                                src={product.image || '/placeholder.jpg'}
                                                 alt={product.name}
                                                 className="w-24 h-24 object-cover rounded-xl shadow-md"
+                                                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                                             />
                                             <div className="flex-1">
                                                 <h3 className="font-bold text-base text-gray-800">{product.name}</h3>
@@ -177,9 +189,10 @@ const ComposeGiftPage = () => {
                                         {selectedProducts.map((product) => (
                                             <div key={product.id} className="flex items-center space-x-3 p-3 bg-gradient-to-br from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl border border-[#6fc7d9]/20 hover:border-[#a7549b]/40 transition-all duration-300">
                                                 <img
-                                                    src={product.image}
+                                                    src={product.image || '/placeholder.jpg'}
                                                     alt={product.name}
                                                     className="w-14 h-14 object-cover rounded-lg shadow-md"
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                                                 />
                                                 <div className="flex-1">
                                                     <h4 className="font-semibold text-sm text-gray-800">{product.name}</h4>
