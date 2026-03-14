@@ -1,59 +1,138 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Package, TrendingUp, Users, DollarSign, Store } from 'lucide-react';
-import { products, suppliers } from '../data/products';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Edit, Trash2, Package, TrendingUp, DollarSign, Store, Upload, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import type { Product } from '../types';
 
 const SupplierDashboard = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [supplierId, setSupplierId] = useState(1); // Simuler un fournisseur connecté
+    const { user, signIn, signOut } = useAuth();
+    const [products, setProducts] = useState<Product[]>([]);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
     const [newProduct, setNewProduct] = useState({
-        name: '',
-        category: '',
-        price: '',
-        description: '',
-        stock: '',
-        image: ''
+        name: '', category: '', price: '', description: '', stock: ''
     });
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Simuler les produits du fournisseur
-    const supplierProducts = products.filter(p => p.supplier === suppliers[supplierId - 1]?.name);
+    const isSupplier = user?.user_metadata?.role === 'supplier';
+    const supplierName = user?.user_metadata?.supplier_name ?? '';
 
-    // Simuler les statistiques
+    useEffect(() => {
+        if (isSupplier && supplierName) fetchProducts();
+    }, [isSupplier, supplierName]);
+
+    const fetchProducts = async () => {
+        const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('supplier', supplierName)
+            .order('created_at', { ascending: false });
+        if (!error && data) setProducts(data);
+    };
+
     const stats = {
-        totalProducts: supplierProducts.length,
+        totalProducts: products.length,
         totalSales: 1250,
         totalRevenue: 15680.50,
-        lowStock: supplierProducts.filter(p => p.stock < 10).length
+        lowStock: products.filter(p => p.stock < 10).length
     };
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoggedIn(true);
-    };
-
-    const handleAddProduct = (e) => {
-        e.preventDefault();
-        alert('Produit ajouté avec succès !');
-        setNewProduct({
-            name: '',
-            category: '',
-            price: '',
-            description: '',
-            stock: '',
-            image: ''
-        });
-    };
-
-    const handleDeleteProduct = (productId) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-            alert('Produit supprimé !');
+        setLoginError('');
+        setLoginLoading(true);
+        const { data, error } = await signIn(email, password);
+        setLoginLoading(false);
+        if (error) {
+            setLoginError('Email ou mot de passe incorrect.');
+            return;
+        }
+        if (data?.user?.user_metadata?.role !== 'supplier') {
+            await signOut();
+            setLoginError('Accès refusé. Ce compte n\'a pas les droits fournisseur.');
         }
     };
 
-    if (!isLoggedIn) {
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(file));
+    };
+
+    const clearImage = () => {
+        setImageFile(null);
+        setImagePreview('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const handleAddProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!imageFile) {
+            alert('Veuillez sélectionner une image.');
+            return;
+        }
+        setUploading(true);
+
+        // 1. Upload de l'image vers Supabase Storage
+        const ext = imageFile.name.split('.').pop();
+        const filePath = `${supplierName}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(filePath, imageFile, { upsert: false });
+
+        if (uploadError) {
+            alert(`Erreur upload image : ${uploadError.message}`);
+            setUploading(false);
+            return;
+        }
+
+        // 2. Récupérer l'URL publique
+        const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+        const imageUrl = urlData.publicUrl;
+
+        // 3. Insérer le produit avec l'URL de l'image
+        const { data, error } = await supabase.from('products').insert([{
+            name: newProduct.name,
+            category: newProduct.category,
+            price: parseFloat(newProduct.price),
+            description: newProduct.description,
+            stock: parseInt(newProduct.stock),
+            image: imageUrl,
+            supplier: supplierName,
+            rating: 4.5,
+            tags: []
+        }]).select().single();
+
+        setUploading(false);
+
+        if (!error && data) {
+            setProducts(prev => [data as Product, ...prev]);
+            setNewProduct({ name: '', category: '', price: '', description: '', stock: '' });
+            clearImage();
+            alert('Produit ajouté avec succès !');
+        } else {
+            alert(`Erreur : ${error?.message ?? 'Impossible d\'ajouter le produit.'}`);
+        }
+    };
+
+    const handleDeleteProduct = async (id: number | string) => {
+        if (!window.confirm('Supprimer ce produit ?')) return;
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (!error) setProducts(prev => prev.filter(p => p.id !== id));
+    };
+
+    if (!user || !isSupplier) {
         return (
             <div className="min-h-screen flex">
-                {/* Colonne Gauche - Image & Branding */}
+                {/* Colonne Gauche */}
                 <div
                     className="hidden lg:flex lg:w-1/2 bg-cover bg-center relative"
                     style={{ backgroundImage: "url('../public/bannier4.jpg')" }}
@@ -84,14 +163,14 @@ const SupplierDashboard = () => {
                                 <p className="text-sm font-semibold">Suivi Revenus</p>
                             </div>
                             <div className="bg-white/20 backdrop-blur-md rounded-xl p-6">
-                                <Users className="h-10 w-10 mx-auto mb-3" />
+                                <Store className="h-10 w-10 mx-auto mb-3" />
                                 <p className="text-sm font-semibold">Support Client</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Colonne Droite - Formulaire de Connexion */}
+                {/* Colonne Droite - Formulaire */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center bg-gradient-to-br from-[#6fc7d9]/5 to-[#a7549b]/5 px-8">
                     <div className="w-full max-w-md">
                         <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 border border-white/50">
@@ -107,55 +186,41 @@ const SupplierDashboard = () => {
 
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Email
-                                    </label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                                     <input
                                         type="email"
                                         required
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
                                         className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
                                         placeholder="votre@email.com"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Mot de passe
-                                    </label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Mot de passe</label>
                                     <input
                                         type="password"
                                         required
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
                                         className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
                                         placeholder="••••••••"
                                     />
                                 </div>
 
-                                <div className="flex items-center justify-between text-sm">
-                                    <label className="flex items-center">
-                                        <input type="checkbox" className="mr-2 rounded border-[#6fc7d9]" />
-                                        <span className="text-gray-600">Se souvenir de moi</span>
-                                    </label>
-                                    <a href="#" className="text-[#a7549b] hover:text-[#6fc7d9] font-medium">
-                                        Mot de passe oublié ?
-                                    </a>
-                                </div>
+                                {loginError && (
+                                    <p className="text-red-500 text-sm text-center font-medium">{loginError}</p>
+                                )}
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300"
+                                    disabled={loginLoading}
+                                    className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
                                 >
-                                    Se connecter
+                                    {loginLoading ? 'Connexion...' : 'Se connecter'}
                                 </button>
                             </form>
-
-                            <div className="mt-6 text-center">
-                                <p className="text-sm text-gray-600">
-                                    Pas encore de compte fournisseur ?{' '}
-                                    <Link to="/supplier/register" className="text-[#a7549b] hover:text-[#6fc7d9] font-semibold">
-                                        S'inscrire
-                                    </Link>
-                                </p>
-                            </div>
 
                             <div className="mt-6 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
                                 <p className="text-xs text-gray-600 text-center">
@@ -180,21 +245,16 @@ const SupplierDashboard = () => {
                                 Tableau de Bord Fournisseur
                             </h1>
                             <p className="text-base sm:text-lg text-gray-600 mt-1">
-                                Bienvenue,{" "}
-                                <span className="font-semibold">
-                                    {suppliers[supplierId - 1]?.name}
-                                </span>
+                                Bienvenue, <span className="font-semibold">{supplierName}</span>
                             </p>
                         </div>
-
                         <button
-                            onClick={() => setIsLoggedIn(false)}
+                            onClick={signOut}
                             className="bg-gradient-to-r from-red-500 to-red-600 text-white px-5 sm:px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                         >
                             Déconnexion
                         </button>
                     </div>
-
                 </div>
 
                 {/* Stats Cards */}
@@ -206,9 +266,7 @@ const SupplierDashboard = () => {
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-semibold text-gray-600">Produits</p>
-                                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">
-                                    {stats.totalProducts}
-                                </p>
+                                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">{stats.totalProducts}</p>
                             </div>
                         </div>
                     </div>
@@ -220,9 +278,7 @@ const SupplierDashboard = () => {
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-semibold text-gray-600">Ventes</p>
-                                <p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">
-                                    {stats.totalSales}
-                                </p>
+                                <p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">{stats.totalSales}</p>
                             </div>
                         </div>
                     </div>
@@ -234,9 +290,7 @@ const SupplierDashboard = () => {
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-semibold text-gray-600">Chiffre d'affaires</p>
-                                <p className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                    {stats.totalRevenue.toFixed(2)}€
-                                </p>
+                                <p className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">{stats.totalRevenue.toFixed(2)}€</p>
                             </div>
                         </div>
                     </div>
@@ -244,13 +298,11 @@ const SupplierDashboard = () => {
                     <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50 hover:scale-105 transition-all duration-300">
                         <div className="flex items-center">
                             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-                                <Users className="h-7 w-7 text-white" />
+                                <Package className="h-7 w-7 text-white" />
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-semibold text-gray-600">Stock Faible</p>
-                                <p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
-                                    {stats.lowStock}
-                                </p>
+                                <p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">{stats.lowStock}</p>
                             </div>
                         </div>
                     </div>
@@ -270,9 +322,7 @@ const SupplierDashboard = () => {
 
                         <form onSubmit={handleAddProduct} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Nom du produit
-                                </label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Nom du produit</label>
                                 <input
                                     type="text"
                                     value={newProduct.name}
@@ -283,9 +333,7 @@ const SupplierDashboard = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Catégorie
-                                </label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Catégorie</label>
                                 <select
                                     value={newProduct.category}
                                     onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
@@ -304,9 +352,7 @@ const SupplierDashboard = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Prix (€)
-                                    </label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Prix (€)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -316,11 +362,8 @@ const SupplierDashboard = () => {
                                         required
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Stock
-                                    </label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Stock</label>
                                     <input
                                         type="number"
                                         value={newProduct.stock}
@@ -332,36 +375,54 @@ const SupplierDashboard = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    Description
-                                </label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
                                 <textarea
                                     value={newProduct.description}
                                     onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                                     className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                    rows="3"
+                                    rows={3}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                    URL de l'image
-                                </label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Image du produit</label>
+                                {imagePreview ? (
+                                    <div className="relative w-full h-40 rounded-xl overflow-hidden border-2 border-[#6fc7d9]/30">
+                                        <img src={imagePreview} alt="Aperçu" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={clearImage}
+                                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full h-40 border-2 border-dashed border-[#6fc7d9]/50 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#a7549b] hover:bg-[#a7549b]/5 transition-all"
+                                    >
+                                        <Upload className="h-8 w-8 text-[#6fc7d9] mb-2" />
+                                        <p className="text-sm font-semibold text-gray-600">Cliquer pour choisir une image</p>
+                                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — max 5 Mo</p>
+                                    </div>
+                                )}
                                 <input
-                                    type="url"
-                                    value={newProduct.image}
-                                    onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                                    className="w-full px-4 py-2.5 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                    placeholder="https://example.com/image.jpg"
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="hidden"
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300"
+                                disabled={uploading}
+                                className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
                             >
-                                Ajouter le Produit
+                                {uploading ? 'Upload en cours...' : 'Ajouter le Produit'}
                             </button>
                         </form>
                     </div>
@@ -373,7 +434,7 @@ const SupplierDashboard = () => {
                         </h2>
 
                         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                            {supplierProducts.map((product) => (
+                            {products.map((product) => (
                                 <div key={product.id} className="flex items-center space-x-4 p-4 border-2 border-[#6fc7d9]/20 rounded-xl hover:border-[#a7549b]/40 hover:shadow-lg transition-all duration-300 bg-white/50">
                                     <img
                                         src={product.image}
@@ -382,12 +443,8 @@ const SupplierDashboard = () => {
                                     />
                                     <div className="flex-1">
                                         <h3 className="font-bold text-gray-800">{product.name}</h3>
-                                        <p className="text-sm font-medium bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                            {product.category}
-                                        </p>
-                                        <p className="font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                            {product.price}€
-                                        </p>
+                                        <p className="text-sm font-medium bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">{product.category}</p>
+                                        <p className="font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">{product.price}€</p>
                                         <p className={`text-sm font-semibold ${product.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
                                             Stock: {product.stock}
                                         </p>
@@ -405,6 +462,9 @@ const SupplierDashboard = () => {
                                     </div>
                                 </div>
                             ))}
+                            {products.length === 0 && (
+                                <p className="text-center text-gray-500 py-8">Aucun produit pour l'instant.</p>
+                            )}
                         </div>
                     </div>
                 </div>

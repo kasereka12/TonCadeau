@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import type { DeliveryInfo } from '../types';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -44,7 +46,7 @@ const CartPage = () => {
 
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-    const handleQuantityChange = (productId, newQuantity) => {
+    const handleQuantityChange = (productId: number | string, newQuantity: number) => {
         if (newQuantity <= 0) {
             removeFromCart(productId);
         } else {
@@ -52,7 +54,7 @@ const CartPage = () => {
         }
     };
 
-    const handleDeliveryInfoChange = (field, value) => {
+    const handleDeliveryInfoChange = (field: keyof DeliveryInfo, value: string) => {
         setDeliveryInfo({ ...deliveryInfo, [field]: value });
     };
 
@@ -71,7 +73,7 @@ const CartPage = () => {
     };
 
     /* ── Label component ── */
-    const Label = ({ children, required }) => (
+    const Label = ({ children, required }: { children: ReactNode; required?: boolean }) => (
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
             {children}{required && <span style={{ color: t.cyan }}> *</span>}
         </label>
@@ -251,7 +253,7 @@ const CartPage = () => {
                                     placeholder="Écrivez un message personnalisé..."
                                     className={inputClass}
                                     style={t.input}
-                                    rows="3"
+                                    rows={3}
                                 />
                             </div>
 
@@ -292,7 +294,7 @@ const CartPage = () => {
                                             onChange={(e) => handleDeliveryInfoChange('deliveryAddress', e.target.value)}
                                             className={inputClass}
                                             style={t.input}
-                                            rows="2"
+                                            rows={2}
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">

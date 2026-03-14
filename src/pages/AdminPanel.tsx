@@ -1,13 +1,36 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Users, Package, TrendingUp, DollarSign, Settings, Eye, Edit, Trash2 } from 'lucide-react';
-import { products, suppliers } from '../data/products';
+import React, { useState, useEffect } from 'react';
+import { Users, Package, TrendingUp, DollarSign, Settings, Eye, Trash2 } from 'lucide-react';
+import { suppliers } from '../data/products';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import type { Product } from '../types';
 
 const AdminPanel = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { user, signIn, signOut } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
 
-    // Simuler les statistiques
+    const isAdmin = user?.user_metadata?.role === 'admin';
+
+    useEffect(() => {
+        if (isAdmin) fetchProducts();
+    }, [isAdmin]);
+
+    const fetchProducts = async () => {
+        const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        if (!error && data) setProducts(data);
+    };
+
+    const handleDeleteProduct = async (id: number | string) => {
+        if (!window.confirm('Supprimer ce produit ?')) return;
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (!error) setProducts(prev => prev.filter(p => p.id !== id));
+    };
+
     const stats = {
         totalProducts: products.length,
         totalSuppliers: suppliers.length,
@@ -15,12 +38,23 @@ const AdminPanel = () => {
         totalRevenue: 45680.50
     };
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoggedIn(true);
+        setLoginError('');
+        setLoginLoading(true);
+        const { data, error } = await signIn(email, password);
+        setLoginLoading(false);
+        if (error) {
+            setLoginError('Email ou mot de passe incorrect.');
+            return;
+        }
+        if (data?.user?.user_metadata?.role !== 'admin') {
+            await signOut();
+            setLoginError('Accès refusé. Ce compte n\'a pas les droits administrateur.');
+        }
     };
 
-    if (!isLoggedIn) {
+    if (!user || !isAdmin) {
         return (
             <div className="min-h-screen flex">
                 {/* Colonne Gauche - Image & Branding */}
@@ -80,6 +114,8 @@ const AdminPanel = () => {
                                     <input
                                         type="email"
                                         required
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
                                         className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
                                         placeholder="admin@cadeaubox.fr"
                                     />
@@ -92,26 +128,23 @@ const AdminPanel = () => {
                                     <input
                                         type="password"
                                         required
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
                                         className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
                                         placeholder="••••••••"
                                     />
                                 </div>
 
-                                <div className="flex items-center justify-between text-sm">
-                                    <label className="flex items-center">
-                                        <input type="checkbox" className="mr-2 rounded border-[#6fc7d9]" />
-                                        <span className="text-gray-600">Se souvenir de moi</span>
-                                    </label>
-                                    <a href="#" className="text-[#a7549b] hover:text-[#6fc7d9] font-medium">
-                                        Mot de passe oublié ?
-                                    </a>
-                                </div>
+                                {loginError && (
+                                    <p className="text-red-500 text-sm text-center font-medium">{loginError}</p>
+                                )}
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300"
+                                    disabled={loginLoading}
+                                    className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
                                 >
-                                    Se connecter
+                                    {loginLoading ? 'Connexion...' : 'Se connecter'}
                                 </button>
                             </form>
 
@@ -143,13 +176,12 @@ const AdminPanel = () => {
                         </div>
 
                         <button
-                            onClick={() => setIsLoggedIn(false)}
+                            onClick={signOut}
                             className="bg-gradient-to-r from-red-500 to-red-600 text-white px-5 sm:px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                         >
                             Déconnexion
                         </button>
                     </div>
-
                 </div>
 
                 {/* Navigation Tabs */}
@@ -174,13 +206,11 @@ const AdminPanel = () => {
                             </button>
                         ))}
                     </nav>
-
                 </div>
 
                 {/* Dashboard Tab */}
                 {activeTab === 'dashboard' && (
                     <div>
-                        {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                             <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50 hover:scale-105 transition-all duration-300">
                                 <div className="flex items-center">
@@ -239,7 +269,6 @@ const AdminPanel = () => {
                             </div>
                         </div>
 
-                        {/* Recent Activity */}
                         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
                             <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Activité Récente
@@ -278,9 +307,6 @@ const AdminPanel = () => {
                             <h2 className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Gestion des Produits
                             </h2>
-                            <button className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
-                                Ajouter un Produit
-                            </button>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -327,13 +353,10 @@ const AdminPanel = () => {
                                             <td className="py-4 px-4 text-gray-700">{product.supplier}</td>
                                             <td className="py-4 px-4">
                                                 <div className="flex space-x-2">
-                                                    <button className="text-blue-500 hover:text-blue-700 hover:scale-125 transition-all">
-                                                        <Eye className="h-5 w-5" />
-                                                    </button>
-                                                    <button className="text-green-500 hover:text-green-700 hover:scale-125 transition-all">
-                                                        <Edit className="h-5 w-5" />
-                                                    </button>
-                                                    <button className="text-red-500 hover:text-red-700 hover:scale-125 transition-all">
+                                                    <button
+                                                        onClick={() => handleDeleteProduct(product.id)}
+                                                        className="text-red-500 hover:text-red-700 hover:scale-125 transition-all"
+                                                    >
                                                         <Trash2 className="h-5 w-5" />
                                                     </button>
                                                 </div>
@@ -353,9 +376,6 @@ const AdminPanel = () => {
                             <h2 className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Gestion des Fournisseurs
                             </h2>
-                            <button className="bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
-                                Ajouter un Fournisseur
-                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -367,14 +387,9 @@ const AdminPanel = () => {
                                         <span className="text-sm font-semibold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                             {products.filter(p => p.supplier === supplier.name).length} produits
                                         </span>
-                                        <div className="flex space-x-2">
-                                            <button className="text-blue-500 hover:text-blue-700 hover:scale-125 transition-all">
-                                                <Eye className="h-5 w-5" />
-                                            </button>
-                                            <button className="text-green-500 hover:text-green-700 hover:scale-125 transition-all">
-                                                <Edit className="h-5 w-5" />
-                                            </button>
-                                        </div>
+                                        <button className="text-blue-500 hover:text-blue-700 hover:scale-125 transition-all">
+                                            <Eye className="h-5 w-5" />
+                                        </button>
                                     </div>
                                 </div>
                             ))}

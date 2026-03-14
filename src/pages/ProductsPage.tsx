@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Filter, Search } from 'lucide-react';
-import { products, categories } from '../data/products';
+import { Star, Search } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
+import type { Product } from '../types';
 
 const ProductsPage = () => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('default');
     const { addToCart } = useCart();
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            const { data, error } = await supabase.from('products').select('*')
+            if (!error && data) setProducts(data)
+            setLoadingProducts(false)
+        }
+        fetchProducts()
+    }, [])
 
     const filteredProducts = products
         .filter(product => {
@@ -32,7 +44,7 @@ const ProductsPage = () => {
             }
         });
 
-    const handleAddToCart = (product) => {
+    const handleAddToCart = (product: Product) => {
         addToCart(product);
         alert(`${product.name} ajouté au panier !`);
     };
@@ -91,7 +103,7 @@ const ProductsPage = () => {
                 {/* Results Count */}
                 <div className="mb-6">
                     <p className="text-white font-medium">
-                        {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+                        {loadingProducts ? 'Chargement...' : `${filteredProducts.length} produit${filteredProducts.length > 1 ? 's' : ''} trouvé${filteredProducts.length > 1 ? 's' : ''}`}
                     </p>
                 </div>
 

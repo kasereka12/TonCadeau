@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Plus, Minus, ShoppingCart, Heart, Star } from 'lucide-react';
 import { products, categories } from '../data/products';
 import { useCart } from '../context/CartContext';
+import type { CartItem, Product } from '../types';
 
 const ComposeGiftPage = () => {
-    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [giftMessage, setGiftMessage] = useState('');
     const [recipientName, setRecipientName] = useState('');
@@ -15,7 +15,7 @@ const ComposeGiftPage = () => {
         selectedCategory === 'all' || product.category === selectedCategory
     );
 
-    const addProductToGift = (product) => {
+    const addProductToGift = (product: Product) => {
         const existingProduct = selectedProducts.find(p => p.id === product.id);
         if (existingProduct) {
             setSelectedProducts(selectedProducts.map(p =>
@@ -26,11 +26,11 @@ const ComposeGiftPage = () => {
         }
     };
 
-    const removeProductFromGift = (productId) => {
+    const removeProductFromGift = (productId: number | string) => {
         setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
     };
 
-    const updateProductQuantity = (productId, quantity) => {
+    const updateProductQuantity = (productId: number | string, quantity: number) => {
         if (quantity <= 0) {
             removeProductFromGift(productId);
         } else {
@@ -90,8 +90,8 @@ const ComposeGiftPage = () => {
                                         key={category.id}
                                         onClick={() => setSelectedCategory(category.id)}
                                         className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 ${selectedCategory === category.id
-                                                ? 'bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white shadow-lg scale-105'
-                                                : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#6fc7d9]/20 hover:to-[#a7549b]/20 hover:scale-105'
+                                            ? 'bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white shadow-lg scale-105'
+                                            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#6fc7d9]/20 hover:to-[#a7549b]/20 hover:scale-105'
                                             }`}
                                     >
                                         {category.name}
@@ -224,7 +224,7 @@ const ComposeGiftPage = () => {
                                     onChange={(e) => setGiftMessage(e.target.value)}
                                     placeholder="Écrivez un message personnalisé..."
                                     className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                    rows="3"
+                                    rows={3}
                                 />
                             </div>
 
