@@ -19,13 +19,19 @@ const ProductsPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('q') ?? '');
     const [sortBy, setSortBy] = useState('default');
     const { addToCart } = useCart();
 
     const [activeCategory, setActiveCategory] = useState('all');
 
     const activeRecipient = searchParams.get('recipient') ?? '';
+
+    // Sync searchTerm if ?q= changes (e.g. back navigation)
+    useEffect(() => {
+        const q = searchParams.get('q') ?? '';
+        setSearchTerm(q);
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchProducts = async () => {

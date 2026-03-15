@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, Star, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Product } from '../types';
 
@@ -14,7 +14,9 @@ const recipients = [
 ];
 
 const HomePage = () => {
+    const navigate = useNavigate();
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlide, setHeroSlide] = useState(0);
     const [productSlide, setProductSlide] = useState(0);
@@ -23,6 +25,13 @@ const HomePage = () => {
     const [newsletterSent, setNewsletterSent] = useState(false);
     const [contact, setContact] = useState({ name: '', email: '', message: '' });
     const [contactSent, setContactSent] = useState(false);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const q = searchQuery.trim();
+        if (q) navigate(`/products?q=${encodeURIComponent(q)}`);
+        else navigate('/products');
+    };
 
     const handleNewsletter = (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,17 +145,19 @@ const HomePage = () => {
                         ))}
 
                         {/* Search Bar */}
-                        <div className="relative w-full max-w-xl mx-auto mt-4">
+                        <form onSubmit={handleSearch} className="relative w-full max-w-xl mx-auto mt-4">
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                                 type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="Recherchez un cadeau..."
                                 className="w-full bg-white/95 backdrop-blur-sm pl-14 pr-36 py-4 text-gray-800 rounded-full shadow-xl focus:outline-none focus:ring-2 focus:ring-white/50 text-base placeholder-gray-400"
                             />
-                            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity">
+                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity">
                                 Rechercher
                             </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
@@ -217,11 +228,16 @@ const HomePage = () => {
                                         alt={image.title}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                        <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white/20 transition-all duration-300 inline-flex items-center gap-2">
+                                    {/* Gradient only at bottom — image visible above */}
+                                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent pointer-events-none" />
+                                    <div className="absolute inset-x-0 bottom-6 flex justify-center">
+                                        <Link
+                                            to="/compose-gift"
+                                            className="bg-white/15 backdrop-blur-md border border-white/30 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white/30 hover:scale-105 transition-all duration-300 inline-flex items-center gap-2 shadow-lg"
+                                        >
                                             Personnaliser maintenant
                                             <ArrowRight className="h-4 w-4" />
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

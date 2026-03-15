@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Package, Users, Truck, Settings, Trash2,
     LogOut, MapPin, Save, ExternalLink, Menu, X,
@@ -8,8 +8,15 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { suppliers } from '../data/products';
 import type { Product, Order } from '../types';
+
+interface SupplierProfile {
+    id: string;
+    email: string;
+    full_name: string | null;
+    role: string;
+    created_at: string;
+}
 import logo from '../../public/logo.png';
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
@@ -63,25 +70,45 @@ const StatCard = ({ icon: Icon, label, value, color }: {
 /* ══════════════════════════════════════════════════════════════════════════ */
 const AdminPanel = () => {
     const { user, signOut } = useAuth();
+    const navigate = useNavigate();
     const isAdmin = user?.user_metadata?.role === 'admin';
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate('/');
+    };
 
     const [active, setActive]               = useState('dashboard');
     const [sidebarOpen, setSidebarOpen]     = useState(false);
     const [products, setProducts]           = useState<Product[]>([]);
     const [orders, setOrders]               = useState<Order[]>([]);
+    const [suppliers, setSuppliers]         = useState<SupplierProfile[]>([]);
     const [delivery, setDelivery]           = useState<Record<string, string>>(loadDelivery);
     const [deliverySaved, setDeliverySaved] = useState(false);
     const [ordersLoading, setOrdersLoading] = useState(false);
+    const [suppliersLoading, setSuppliersLoading] = useState(false);
 
     useEffect(() => {
         if (!isAdmin) return;
         fetchProducts();
         fetchOrders();
+        fetchSuppliers();
     }, [isAdmin]);
 
     const fetchProducts = async () => {
         const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
         if (data) setProducts(data);
+    };
+
+    const fetchSuppliers = async () => {
+        setSuppliersLoading(true);
+        const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('role', 'supplier')
+            .order('created_at', { ascending: false });
+        if (data) setSuppliers(data as SupplierProfile[]);
+        setSuppliersLoading(false);
     };
 
     const fetchOrders = async () => {
@@ -167,7 +194,7 @@ const AdminPanel = () => {
                     <ExternalLink className="h-4 w-4 flex-shrink-0" />
                     Voir le site
                 </Link>
-                <button onClick={signOut}
+                <button onClick={handleSignOut}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all">
                     <LogOut className="h-4 w-4 flex-shrink-0" />
                     Déconnexion
@@ -433,31 +460,46 @@ const AdminPanel = () => {
                     {active === 'suppliers' && (
                         <div>
                             <SectionTitle>Fournisseurs ({suppliers.length})</SectionTitle>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {suppliers.map(s => {
-                                    const count = products.filter(p => p.supplier === s.name).length;
-                                    return (
-                                        <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                                    {s.name[0].toUpperCase()}
+                            {suppliersLoading ? (
+                                <div className="text-center py-16 text-slate-400">Chargement…</div>
+                            ) : suppliers.length === 0 ? (
+                                <div className="text-center py-16 text-slate-400">Aucun fournisseur inscrit</div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {suppliers.map(s => {
+                                        const displayName = s.full_name || s.email;
+                                        const initial = (displayName?.[0] ?? '?').toUpperCase();
+                                        const count = products.filter(p => p.supplier === (s.full_name || s.email)).length;
+                                        return (
+                                            <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                                        style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                                        {initial}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-slate-900 truncate">{s.full_name || '—'}</p>
+                                                        <p className="text-xs text-slate-400 truncate">{s.email}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-bold text-slate-900 truncate">{s.name}</p>
-                                                    <p className="text-xs text-slate-400 truncate">{s.email}</p>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-xs font-semibold text-slate-500 block">
+                                                            {count} produit{count !== 1 ? 's' : ''}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-300">
+                                                            Inscrit le {new Date(s.created_at).toLocaleDateString('fr-FR')}
+                                                        </span>
+                                                    </div>
+                                                    <button className="text-slate-300 hover:text-[#aa5a9e] transition-colors">
+                                                        <Eye className="h-4 w-4" />
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-slate-500">{count} produit{count > 1 ? 's' : ''}</span>
-                                                <button className="text-slate-300 hover:text-[#aa5a9e] transition-colors">
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 

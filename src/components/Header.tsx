@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     ShoppingCart, User, ChevronDown, UserPlus, LogOut, LayoutDashboard,
     Bell, Calendar, X, Home, Package, Gift, Cake, Heart, PartyPopper,
@@ -9,19 +9,20 @@ import type { LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useLang } from '../context/LanguageContext';
 import logo from '../../public/logo.png';
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
     birthday: Cake, anniversary: Heart, fete: PartyPopper, other: CalendarDays,
 };
 
-/* Nav links definition shared between desktop nav and mobile dropdown */
-const NAV_LINKS = [
-    { to: '/',             label: 'Accueil',            icon: Home,        supplierHidden: false, authRequired: false },
-    { to: '/products',     label: 'Produits',           icon: Package,     supplierHidden: false, authRequired: false },
-    { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,        supplierHidden: true,  authRequired: false },
-    { to: '/orders',       label: 'Mes commandes',      icon: ShoppingBag, supplierHidden: true,  authRequired: true  },
-];
+/* Nav link keys — labels resolved dynamically via t.nav.* */
+const NAV_LINK_DEFS = [
+    { to: '/',             key: 'home',        icon: Home,        supplierHidden: false, authRequired: false },
+    { to: '/products',     key: 'products',    icon: Package,     supplierHidden: false, authRequired: false },
+    { to: '/compose-gift', key: 'composeGift', icon: Gift,        supplierHidden: true,  authRequired: false },
+    { to: '/orders',       key: 'myOrders',    icon: ShoppingBag, supplierHidden: true,  authRequired: true  },
+] as const;
 
 const DropdownLink = ({ to, icon: Icon, label, color = '#aa5a9e', bg = '#aa5a9e', onClick }: {
     to: string; icon: LucideIcon; label: string; color?: string; bg?: string; onClick: () => void;
@@ -40,6 +41,8 @@ const Header = () => {
     const { getTotalItems } = useCart();
     const { user, signOut } = useAuth();
     const { notifications, unreadCount, markAllRead } = useNotifications();
+    const { lang, setLang, t } = useLang();
+    const navigate = useNavigate();
     const [isScrolled, setIsScrolled]     = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [notifOpen, setNotifOpen]       = useState(false);
@@ -52,6 +55,12 @@ const Header = () => {
     const cartCount   = getTotalItems();
     const isSupplier  = role === 'supplier';
     const isAdmin     = role === 'admin';
+
+    const handleSignOut = async () => {
+        await signOut();
+        close();
+        navigate('/');
+    };
 
     useEffect(() => {
         const onScroll = () => setIsScrolled(window.scrollY > 60);
@@ -74,10 +83,9 @@ const Header = () => {
     const openNotif = () => { setNotifOpen(v => !v); setDropdownOpen(false); };
 
     /* Nav links visible for this role + auth state */
-    const visibleLinks = NAV_LINKS.filter(l =>
-        !(l.supplierHidden && isSupplier) &&
-        !(l.authRequired && !user)
-    );
+    const visibleLinks = NAV_LINK_DEFS
+        .filter(l => !(l.supplierHidden && isSupplier) && !(l.authRequired && !user))
+        .map(l => ({ ...l, label: t.nav[l.key as keyof typeof t.nav] }));
 
     return (
         <header
@@ -117,11 +125,21 @@ const Header = () => {
                     {/* ── Right actions ── */}
                     <div className="flex items-center gap-2">
 
+                        {/* Language toggle */}
+                        <div className="hidden sm:flex items-center rounded-full bg-white/15 border border-white/20 overflow-hidden text-xs font-bold">
+                            {(['fr', 'en'] as const).map(l => (
+                                <button key={l} onClick={() => setLang(l)}
+                                    className={`px-2.5 py-1.5 transition-all duration-200 uppercase ${lang === l ? 'bg-white text-[#aa5a9e]' : 'text-white/70 hover:text-white'}`}>
+                                    {l}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Cart */}
                         <Link to="/cart"
                             className="relative flex items-center gap-2 px-3 py-2 rounded-full text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200">
                             <ShoppingCart className="h-5 w-5" />
-                            <span className="hidden sm:inline text-sm font-medium">Panier</span>
+                            <span className="hidden sm:inline text-sm font-medium">{t.nav.cart}</span>
                             {cartCount > 0 && (
                                 <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-white text-[#aa5a9e] text-[11px] font-bold rounded-full flex items-center justify-center shadow-md">
                                     {cartCount}
@@ -159,7 +177,7 @@ const Header = () => {
                                             style={{ background: 'linear-gradient(135deg, #aa5a9e08, #6fc7d908)' }}>
                                             <div className="flex items-center gap-2">
                                                 <Bell className="h-4 w-4 text-[#aa5a9e]" />
-                                                <span className="font-bold text-slate-900 text-sm">Rappels</span>
+                                                <span className="font-bold text-slate-900 text-sm">{t.nav.notifications}</span>
                                                 {unreadCount > 0 && (
                                                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">
                                                         {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
@@ -210,12 +228,12 @@ const Header = () => {
                                                 className="flex items-center gap-1.5 text-xs font-semibold transition-colors hover:opacity-80"
                                                 style={{ color: '#aa5a9e' }}>
                                                 <Calendar className="h-3.5 w-3.5" />
-                                                Mon calendrier
+                                                {t.nav.myCalendar}
                                             </Link>
                                             {unreadCount > 0 && (
                                                 <button onClick={markAllRead}
                                                     className="text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors">
-                                                    Tout marquer comme lu
+                                                    {lang === 'fr' ? 'Tout marquer comme lu' : 'Mark all as read'}
                                                 </button>
                                             )}
                                         </div>
@@ -243,7 +261,7 @@ const Header = () => {
                                 <button onClick={() => setDropdownOpen(v => !v)}
                                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-[#aa5a9e] hover:bg-white/90 font-semibold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
                                     <User className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Se connecter</span>
+                                    <span className="hidden sm:inline">{t.nav.login}</span>
                                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
                             )}
@@ -259,12 +277,12 @@ const Header = () => {
                                             {/* Profile header */}
                                             <div className="px-4 py-3 border-b border-gray-100/80"
                                                 style={{ background: 'linear-gradient(135deg, #aa5a9e08, #6fc7d908)' }}>
-                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Mon compte</p>
+                                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{lang === 'fr' ? 'Mon compte' : 'My account'}</p>
                                                 <p className="text-sm font-bold text-gray-800 mt-0.5 truncate">{displayName}</p>
                                                 {role && (
                                                     <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
                                                         style={{ background: isSupplier ? '#aa5a9e18' : '#6fc7d918', color: isSupplier ? '#aa5a9e' : '#3b9db2' }}>
-                                                        {isSupplier ? 'Fournisseur' : 'Client'}
+                                                        {isAdmin ? lang === 'fr' ? 'Admin' : 'Admin' : isSupplier ? lang === 'fr' ? 'Fournisseur' : 'Supplier' : lang === 'fr' ? 'Client' : 'Client'}
                                                     </span>
                                                 )}
                                             </div>
@@ -287,7 +305,7 @@ const Header = () => {
                                                         <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center">
                                                             <LayoutDashboard className="h-4 w-4 text-[#aa5a9e]" />
                                                         </div>
-                                                        <span className="font-medium">Mon tableau de bord</span>
+                                                        <span className="font-medium">{t.nav.dashboard}</span>
                                                     </Link>
                                                 )}
                                                 {/* Admin: dashboard link on mobile */}
@@ -297,48 +315,62 @@ const Header = () => {
                                                         <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center">
                                                             <LayoutDashboard className="h-4 w-4 text-[#aa5a9e]" />
                                                         </div>
-                                                        <span className="font-medium">Administration</span>
+                                                        <span className="font-medium">{t.nav.admin}</span>
                                                     </Link>
                                                 )}
                                             </div>
 
                                             {/* ── Account links ── */}
                                             <div className="px-2 py-1.5 space-y-0.5">
-                                                {!isSupplier && (
+                                                {/* Mon profil — always visible */}
+                                                <DropdownLink to="/profile" icon={User} label={t.nav.myProfile}
+                                                    color="#aa5a9e" bg="#aa5a9e" onClick={close} />
+
+                                                {!isSupplier && !isAdmin && (
                                                     <>
-                                                        <DropdownLink to="/my-dates" icon={Calendar} label="Mon calendrier"
+                                                        <DropdownLink to="/my-dates" icon={Calendar} label={t.nav.myCalendar}
                                                             color="#3b9db2" bg="#6fc7d9" onClick={close} />
-                                                        {/* Mes commandes: hidden on mobile (already in mobile nav above) */}
                                                         <div className="hidden md:block">
-                                                            <DropdownLink to="/orders" icon={ShoppingBag} label="Mes commandes"
+                                                            <DropdownLink to="/orders" icon={ShoppingBag} label={t.nav.myOrders}
                                                                 color="#aa5a9e" bg="#aa5a9e" onClick={close} />
                                                         </div>
                                                     </>
                                                 )}
                                                 {isSupplier && (
-                                                    /* Dashboard: hidden on mobile (already in mobile nav section) */
                                                     <div className="hidden md:block">
-                                                        <DropdownLink to="/supplier" icon={LayoutDashboard} label="Mon tableau de bord"
+                                                        <DropdownLink to="/supplier" icon={LayoutDashboard} label={t.nav.dashboard}
                                                             color="#aa5a9e" bg="#aa5a9e" onClick={close} />
                                                     </div>
                                                 )}
                                                 {isAdmin && (
-                                                    /* Admin panel: hidden on mobile (already in mobile nav section) */
                                                     <div className="hidden md:block">
-                                                        <DropdownLink to="/admin/gestion" icon={LayoutDashboard} label="Administration"
+                                                        <DropdownLink to="/admin/gestion" icon={LayoutDashboard} label={t.nav.admin}
                                                             color="#aa5a9e" bg="#aa5a9e" onClick={close} />
                                                     </div>
                                                 )}
+
+                                                {/* Lang toggle in dropdown (mobile only) */}
+                                                <div className="md:hidden flex items-center gap-2 px-3 py-2">
+                                                    <span className="text-xs font-semibold text-slate-400 mr-1">
+                                                        {lang === 'fr' ? 'Langue' : 'Language'}
+                                                    </span>
+                                                    {(['fr', 'en'] as const).map(l => (
+                                                        <button key={l} onClick={() => setLang(l)}
+                                                            className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${lang === l ? 'border-[#aa5a9e] bg-[#aa5a9e]/10 text-[#aa5a9e]' : 'border-slate-200 text-slate-400 hover:border-slate-300'}`}>
+                                                            {l.toUpperCase()}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {/* Logout */}
                                             <div className="px-2 pb-2 border-t border-gray-100/80">
-                                                <button onClick={() => { signOut(); close(); }}
+                                                <button onClick={handleSignOut}
                                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
                                                     <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
                                                         <LogOut className="h-4 w-4 text-red-400" />
                                                     </div>
-                                                    Se déconnecter
+                                                    {t.nav.logout}
                                                 </button>
                                             </div>
                                         </>
@@ -348,8 +380,8 @@ const Header = () => {
                                             {/* ── Mobile-only public nav ── */}
                                             <div className="md:hidden px-2 pt-2 pb-1 border-b border-gray-100/80 space-y-0.5">
                                                 {[
-                                                    { to: '/',         label: 'Accueil',  icon: Home    },
-                                                    { to: '/products', label: 'Produits', icon: Package },
+                                                    { to: '/',         label: t.nav.home,     icon: Home    },
+                                                    { to: '/products', label: t.nav.products,  icon: Package },
                                                 ].map(({ to, label, icon: Icon }) => (
                                                     <Link key={to} to={to} onClick={close}
                                                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-all">
@@ -361,13 +393,26 @@ const Header = () => {
                                                 ))}
                                             </div>
 
+                                            {/* ── Lang toggle (not connected, mobile) ── */}
+                                            <div className="md:hidden flex items-center gap-2 px-4 pb-2">
+                                                <span className="text-xs font-semibold text-slate-400 mr-1">
+                                                    {lang === 'fr' ? 'Langue' : 'Language'}
+                                                </span>
+                                                {(['fr', 'en'] as const).map(l => (
+                                                    <button key={l} onClick={() => setLang(l)}
+                                                        className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${lang === l ? 'border-[#aa5a9e] bg-[#aa5a9e]/10 text-[#aa5a9e]' : 'border-slate-200 text-slate-400 hover:border-slate-300'}`}>
+                                                        {l.toUpperCase()}
+                                                    </button>
+                                                ))}
+                                            </div>
+
                                             {/* ── Single connexion CTA ── */}
                                             <div className="px-3 py-3">
                                                 <Link to="/login" onClick={close}
                                                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 hover:shadow-lg"
                                                     style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
                                                     <User className="h-4 w-4" />
-                                                    Se connecter
+                                                    {t.nav.login}
                                                 </Link>
                                             </div>
 
@@ -376,7 +421,7 @@ const Header = () => {
                                                 <Link to="/register" onClick={close}
                                                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-[#aa5a9e] border border-[#aa5a9e]/20 bg-[#aa5a9e]/5 hover:bg-[#aa5a9e]/10 transition-all">
                                                     <UserPlus className="h-4 w-4" />
-                                                    Créer un compte gratuit
+                                                    {t.nav.register}
                                                 </Link>
                                             </div>
                                         </>

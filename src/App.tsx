@@ -25,6 +25,9 @@ import ImportantDatesPage from './pages/ImportantDatesPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import CheckoutPage from './pages/CheckoutPage';
 import { NotificationProvider } from './context/NotificationContext';
+import { LanguageProvider } from './context/LanguageContext';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ProfilePage from './pages/ProfilePage';
 import Preloader from './components/Preloader';
 import './style.css';
 
@@ -50,6 +53,8 @@ function AppLayout() {
                     <Route path="/my-dates" element={<ImportantDatesPage />} />
                     <Route path="/orders" element={<OrderHistoryPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
                 </Routes>
             </main>
             {!isAdmin && <Footer />}
@@ -60,6 +65,7 @@ function AppLayout() {
 function App() {
     return (
         <AuthProvider>
+            <LanguageProvider>
             <ToastProvider>
             <NotificationProvider>
             <CartProvider>
@@ -70,6 +76,7 @@ function App() {
             </CartProvider>
             </NotificationProvider>
             </ToastProvider>
+            </LanguageProvider>
         </AuthProvider>
     );
 }

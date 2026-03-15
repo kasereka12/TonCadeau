@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, Eye, EyeOff, Gift, MessageSquare, Star, Lock, Store, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LanguageContext';
 
 const LoginPage = () => {
     const { signIn } = useAuth();
+    const { t } = useLang();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -26,7 +28,7 @@ const LoginPage = () => {
         setLoading(false);
 
         if (signInError) {
-            setError('Email ou mot de passe incorrect.');
+            setError(t.auth.invalidCredentials);
             return;
         }
 
@@ -55,24 +57,22 @@ const LoginPage = () => {
                         <div className="w-24 h-24 mx-auto mb-6 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
                             <User className="h-14 w-14 text-white" />
                         </div>
-                        <h1 className="text-5xl font-bold mb-4">Bienvenue</h1>
+                        <h1 className="text-5xl font-bold mb-4">{t.auth.welcome}</h1>
                         <div className="h-1 w-32 bg-white mx-auto rounded-full" />
                     </div>
-                    <p className="text-xl max-w-md leading-relaxed">
-                        Connectez-vous pour accéder à votre espace personnel et suivre vos commandes
-                    </p>
+                    <p className="text-xl max-w-md leading-relaxed">{t.auth.accessPersonal}</p>
                     <div className="mt-10 grid grid-cols-1 gap-4 w-full max-w-xs">
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
                             <Gift className="h-6 w-6 text-white/80" />
-                            <p className="text-sm font-semibold text-left">Accédez à vos commandes</p>
+                            <p className="text-sm font-semibold text-left">{t.auth.accessOrders}</p>
                         </div>
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
                             <MessageSquare className="h-6 w-6 text-white/80" />
-                            <p className="text-sm font-semibold text-left">Gérez vos messages cadeaux</p>
+                            <p className="text-sm font-semibold text-left">{t.auth.manageMessages}</p>
                         </div>
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
                             <Star className="h-6 w-6 text-white/80" />
-                            <p className="text-sm font-semibold text-left">Profitez d'offres exclusives</p>
+                            <p className="text-sm font-semibold text-left">{t.auth.exclusiveOffers}</p>
                         </div>
                     </div>
                 </div>
@@ -89,19 +89,19 @@ const LoginPage = () => {
                                                             <User     className="h-10 w-10 text-white" />}
                             </div>
                             <h2 className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                Connexion
+                                {t.auth.loginTitle}
                             </h2>
                             <p className="text-gray-600 mt-2">
-                                {from === '/admin/gestion' ? 'Espace administrateur' :
-                                 from === '/supplier'      ? 'Espace fournisseur' :
-                                                            'Accédez à votre espace personnel'}
+                                {from === '/admin/gestion' ? t.auth.adminSpace :
+                                 from === '/supplier'      ? t.auth.supplierSpace :
+                                                            t.auth.personalSpace}
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Email
+                                    {t.auth.email}
                                 </label>
                                 <input
                                     type="email"
@@ -114,9 +114,15 @@ const LoginPage = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Mot de passe
-                                </label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-semibold text-gray-700">
+                                        {t.auth.password}
+                                    </label>
+                                    <Link to="/forgot-password"
+                                        className="text-xs font-semibold text-[#a7549b] hover:text-[#6fc7d9] transition-colors">
+                                        {t.auth.forgotPassword}
+                                    </Link>
+                                </div>
                                 <div className="relative">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
@@ -147,28 +153,28 @@ const LoginPage = () => {
                                 disabled={loading}
                                 className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
                             >
-                                {loading ? 'Connexion...' : 'Se connecter'}
+                                {loading ? t.auth.loggingIn : t.auth.loginBtn}
                             </button>
                         </form>
 
                         <div className="mt-6 text-center space-y-3">
                             <p className="text-sm text-gray-600">
-                                Pas encore de compte ?{' '}
+                                {t.auth.noAccount}{' '}
                                 <Link to="/register" className="text-[#a7549b] hover:text-[#6fc7d9] font-semibold">
-                                    Créer un compte
+                                    {t.auth.registerBtn}
                                 </Link>
                             </p>
                             <p className="text-sm text-gray-600">
-                                Vous êtes fournisseur ?{' '}
+                                {t.auth.supplierQuestion}{' '}
                                 <Link to="/supplier" className="text-[#a7549b] hover:text-[#6fc7d9] font-semibold">
-                                    Espace fournisseur
+                                    {t.auth.supplierLink}
                                 </Link>
                             </p>
                         </div>
 
                         <div className="mt-6 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
                             <p className="text-xs text-gray-600 text-center">
-                                <Lock className="inline h-3.5 w-3.5 mr-1" />Connexion sécurisée par Supabase Auth
+                                <Lock className="inline h-3.5 w-3.5 mr-1" />{t.auth.securedBy}
                             </p>
                         </div>
                     </div>
