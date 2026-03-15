@@ -3,7 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
     CreditCard, ShieldCheck, Lock, ChevronRight, CheckCircle,
     ArrowLeft, Smartphone, AlertCircle, Package, Truck,
-    MessageSquare, RefreshCw, ExternalLink,
+    MessageSquare, RefreshCw, ExternalLink,Gift
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
