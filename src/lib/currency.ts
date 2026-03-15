@@ -3,7 +3,7 @@ const USD_RATE = 0.10;
 
 export function formatPrice(amount: number): string {
     const dh  = amount.toFixed(2);
-    const usd = (amount * USD_RATE).toFixed(2);
+    //const usd = (amount * USD_RATE).toFixed(2);
     return `${dh} DH`;
 }
 

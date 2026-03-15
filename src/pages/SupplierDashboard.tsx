@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
     Package, TrendingUp, DollarSign, AlertTriangle,
-    Plus, Trash2, Upload, X, Store, LogOut,
+    Plus, Trash2, Upload, X, LogOut,
     Edit3, Star,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -105,7 +105,7 @@ const SupplierDashboard = () => {
 
     const handleCancelEdit = () => {
         setEditingProduct(null);
-        setNewProduct({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
+        setNewProduct({ name: '', recipient: '', category: '', city: '', price: '', description: '', stock: '' });
         clearImage();
     };
 
