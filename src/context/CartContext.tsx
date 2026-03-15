@@ -1,9 +1,10 @@
 import { createContext, useContext, useReducer } from 'react';
 import type { ReactNode } from 'react';
-import type { CartItem, DeliveryInfo, Product } from '../types';
+import type { CartItem, DeliveryInfo, GiftBundle, Product } from '../types';
 
 interface CartState {
     items: CartItem[]
+    giftBundles: GiftBundle[]
     giftMessage: string
     deliveryInfo: DeliveryInfo
 }
@@ -17,6 +18,8 @@ interface CartContextType extends CartState {
     setDeliveryInfo: (info: DeliveryInfo) => void
     getTotalPrice: () => number
     getTotalItems: () => number
+    addGiftBundle: (bundle: GiftBundle) => void
+    removeGiftBundle: (id: string) => void
 }
 
 type CartAction =
@@ -26,11 +29,14 @@ type CartAction =
     | { type: 'CLEAR_CART' }
     | { type: 'SET_GIFT_MESSAGE'; payload: string }
     | { type: 'SET_DELIVERY_INFO'; payload: DeliveryInfo }
+    | { type: 'ADD_GIFT_BUNDLE'; payload: GiftBundle }
+    | { type: 'REMOVE_GIFT_BUNDLE'; payload: string }
 
 const CartContext = createContext<CartContextType | null>(null);
 
 const initialState: CartState = {
     items: [],
+    giftBundles: [],
     giftMessage: '',
     deliveryInfo: {
         recipientName: '',
@@ -67,11 +73,15 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
                     .filter(item => item.quantity > 0)
             };
         case 'CLEAR_CART':
-            return { ...state, items: [] };
+            return { ...state, items: [], giftBundles: [] };
         case 'SET_GIFT_MESSAGE':
             return { ...state, giftMessage: action.payload };
         case 'SET_DELIVERY_INFO':
             return { ...state, deliveryInfo: action.payload };
+        case 'ADD_GIFT_BUNDLE':
+            return { ...state, giftBundles: [...state.giftBundles, action.payload] };
+        case 'REMOVE_GIFT_BUNDLE':
+            return { ...state, giftBundles: state.giftBundles.filter(b => b.id !== action.payload) };
         default:
             return state;
     }
@@ -80,17 +90,31 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
     const [state, dispatch] = useReducer(cartReducer, initialState);
 
-    const addToCart = (product: Product) => dispatch({ type: 'ADD_TO_CART', payload: product });
-    const removeFromCart = (productId: number | string) => dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
-    const updateQuantity = (productId: number | string, quantity: number) => dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity } });
-    const clearCart = () => dispatch({ type: 'CLEAR_CART' });
-    const setGiftMessage = (message: string) => dispatch({ type: 'SET_GIFT_MESSAGE', payload: message });
+    const addToCart       = (product: Product) => dispatch({ type: 'ADD_TO_CART', payload: product });
+    const removeFromCart  = (productId: number | string) => dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
+    const updateQuantity  = (productId: number | string, quantity: number) => dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity } });
+    const clearCart       = () => dispatch({ type: 'CLEAR_CART' });
+    const setGiftMessage  = (message: string) => dispatch({ type: 'SET_GIFT_MESSAGE', payload: message });
     const setDeliveryInfo = (info: DeliveryInfo) => dispatch({ type: 'SET_DELIVERY_INFO', payload: info });
-    const getTotalPrice = () => state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-    const getTotalItems = () => state.items.reduce((total, item) => total + item.quantity, 0);
+    const addGiftBundle   = (bundle: GiftBundle) => dispatch({ type: 'ADD_GIFT_BUNDLE', payload: bundle });
+    const removeGiftBundle = (id: string) => dispatch({ type: 'REMOVE_GIFT_BUNDLE', payload: id });
+
+    const getTotalPrice = () =>
+        state.items.reduce((t, i) => t + i.price * i.quantity, 0) +
+        state.giftBundles.reduce((t, b) => t + b.total, 0);
+
+    const getTotalItems = () =>
+        state.items.reduce((t, i) => t + i.quantity, 0) +
+        state.giftBundles.reduce((t, b) => t + b.items.reduce((s, i) => s + i.quantity, 0), 0);
 
     return (
-        <CartContext.Provider value={{ ...state, addToCart, removeFromCart, updateQuantity, clearCart, setGiftMessage, setDeliveryInfo, getTotalPrice, getTotalItems }}>
+        <CartContext.Provider value={{
+            ...state,
+            addToCart, removeFromCart, updateQuantity, clearCart,
+            setGiftMessage, setDeliveryInfo,
+            getTotalPrice, getTotalItems,
+            addGiftBundle, removeGiftBundle,
+        }}>
             {children}
         </CartContext.Provider>
     );

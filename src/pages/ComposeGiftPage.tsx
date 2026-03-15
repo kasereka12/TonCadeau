@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Plus, Minus, ShoppingCart, Heart, Star } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Heart, Star, User, Users, Baby } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import type { CartItem, Product } from '../types';
 
+interface Persona { key: string; label: string; ageRange: string; icon: LucideIcon; color: string; bg: string }
+
+const PERSONAS: Persona[] = [
+    { key: 'all',         label: 'Pour tous',    ageRange: '',            icon: Users, color: '#aa5a9e', bg: '#aa5a9e' },
+    { key: 'papa',        label: 'Homme',        ageRange: '18 ans +',   icon: User,  color: '#3b82f6', bg: '#3b82f6' },
+    { key: 'conjoint',    label: 'Femme',        ageRange: '18 ans +',   icon: User,  color: '#ec4899', bg: '#ec4899' },
+    { key: 'enfant',      label: 'Jeune Garçon', ageRange: '6 – 17 ans', icon: User,  color: '#6366f1', bg: '#6366f1' },
+    { key: 'famille',     label: 'Jeune Fille',  ageRange: '6 – 17 ans', icon: User,  color: '#f472b6', bg: '#f472b6' },
+    { key: 'bebe-garcon', label: 'Bébé Garçon',  ageRange: '0 – 5 ans',  icon: Baby,  color: '#0ea5e9', bg: '#0ea5e9' },
+    { key: 'bebe-fille',  label: 'Bébé Fille',   ageRange: '0 – 5 ans',  icon: Baby,  color: '#fb7185', bg: '#fb7185' },
+];
+
 const ComposeGiftPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedPersona, setSelectedPersona] = useState('all');
 
     useEffect(() => {
         supabase.from('products').select('*').order('created_at', { ascending: false })
@@ -22,11 +36,13 @@ const ComposeGiftPage = () => {
     const { toast } = useToast();
     const [giftMessage, setGiftMessage] = useState('');
     const [recipientName, setRecipientName] = useState('');
-    const { addToCart } = useCart();
+    const { addGiftBundle } = useCart();
 
-    const filteredProducts = products.filter(product =>
-        selectedCategory === 'all' || product.category === selectedCategory
-    );
+    const filteredProducts = products.filter(product => {
+        const matchPersona   = selectedPersona === 'all' || product.tags?.[0] === selectedPersona;
+        const matchCategory  = selectedCategory === 'all' || product.category === selectedCategory;
+        return matchPersona && matchCategory;
+    });
 
     const addProductToGift = (product: Product) => {
         const existingProduct = selectedProducts.find(p => p.id === product.id);
@@ -63,19 +79,26 @@ const ComposeGiftPage = () => {
             return;
         }
 
-        // Ajouter chaque produit au panier
-        selectedProducts.forEach(product => {
-            for (let i = 0; i < product.quantity; i++) {
-                addToCart(product);
-            }
+        const persona = PERSONAS.find(p => p.key === selectedPersona);
+        const bundleTotal = selectedProducts.reduce((t, p) => t + p.price * p.quantity, 0);
+
+        addGiftBundle({
+            id:            `bundle-${Date.now()}`,
+            items:         [...selectedProducts],
+            message:       giftMessage,
+            recipientName,
+            personaKey:    selectedPersona,
+            personaLabel:  persona?.label ?? '',
+            total:         bundleTotal,
         });
 
         toast('Votre cadeau personnalisé a été ajouté au panier !', 'success');
 
-        // Réinitialiser
         setSelectedProducts([]);
         setGiftMessage('');
         setRecipientName('');
+        setSelectedPersona('all');
+        setSelectedCategory('all');
     };
 
     return (
@@ -94,6 +117,45 @@ const ComposeGiftPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Products Selection */}
                     <div className="lg:col-span-2">
+
+                        {/* ── Persona Filter ── */}
+                        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 mb-6 border border-white/50">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800">Pour qui est ce cadeau ?</h2>
+                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                                {PERSONAS.map(({ key, label, ageRange, icon: Icon, bg }) => {
+                                    const active = selectedPersona === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => { setSelectedPersona(key); setSelectedCategory('all'); }}
+                                            className={`flex flex-col items-center gap-2 py-3 px-2 rounded-2xl border-2 text-center transition-all duration-200 hover:scale-105 ${
+                                                active
+                                                    ? 'border-transparent text-white shadow-lg scale-105'
+                                                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-slate-200'
+                                            }`}
+                                            style={active ? { background: `linear-gradient(135deg, ${bg}cc, ${bg})` } : {}}
+                                        >
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                                active ? 'bg-white/25' : 'bg-white border border-slate-100'
+                                            }`}>
+                                                <Icon className="h-5 w-5" style={{ color: active ? 'white' : bg }} />
+                                            </div>
+                                            <div>
+                                                <p className={`text-[11px] font-bold leading-tight ${active ? 'text-white' : 'text-slate-700'}`}>
+                                                    {label}
+                                                </p>
+                                                {ageRange && (
+                                                    <p className={`text-[9px] leading-tight mt-0.5 ${active ? 'text-white/75' : 'text-slate-400'}`}>
+                                                        {ageRange}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {/* Category Filter */}
                         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 mb-6 border border-white/50">
                             <h2 className="text-xl font-bold mb-4 text-gray-800">Choisir une Catégorie</h2>
@@ -115,7 +177,17 @@ const ComposeGiftPage = () => {
 
                         {/* Products Grid */}
                         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Produits Disponibles</h2>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-gray-800">Produits Disponibles</h2>
+                                <span className="text-sm text-slate-400 font-medium">{filteredProducts.length} produit{filteredProducts.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            {filteredProducts.length === 0 ? (
+                                <div className="text-center py-12">
+                                    {(() => { const p = PERSONAS.find(x => x.key === selectedPersona); const Icon = p?.icon ?? Users; return <Icon className="h-12 w-12 mx-auto mb-3 text-slate-200" />; })()}
+                                    <p className="text-slate-500 font-medium">Aucun produit pour ce critère</p>
+                                    <p className="text-slate-400 text-sm mt-1">Essayez une autre catégorie ou un autre profil</p>
+                                </div>
+                            ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {filteredProducts.map((product) => (
                                     <div key={product.id} className="border-2 border-[#6fc7d9]/20 rounded-xl p-4 hover:border-[#a7549b]/40 hover:shadow-xl transition-all duration-300 bg-white/50">
@@ -157,6 +229,7 @@ const ComposeGiftPage = () => {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     </div>
 
@@ -171,6 +244,25 @@ const ComposeGiftPage = () => {
                                     Votre Cadeau
                                 </span>
                             </h2>
+
+                            {/* Persona badge */}
+                            {selectedPersona !== 'all' && (() => {
+                                const p = PERSONAS.find(x => x.key === selectedPersona)!;
+                                const Icon = p.icon;
+                                return (
+                                    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl border"
+                                        style={{ background: `${p.bg}12`, borderColor: `${p.bg}30` }}>
+                                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                                            style={{ background: `${p.bg}22` }}>
+                                            <Icon className="h-4 w-4" style={{ color: p.bg }} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold" style={{ color: p.bg }}>{p.label}</p>
+                                            {p.ageRange && <p className="text-[10px] text-slate-400">{p.ageRange}</p>}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                             {/* Selected Products */}
                             <div className="mb-6">

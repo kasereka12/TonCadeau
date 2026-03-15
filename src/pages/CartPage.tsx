@@ -1,10 +1,20 @@
-import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { DeliveryInfo, Order } from '../types';
-import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart, Gift, ChevronRight } from 'lucide-react';
+import type { DeliveryInfo } from '../types';
+import { Link, useNavigate } from 'react-router-dom';
+import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart, Gift, ChevronRight, MessageSquare, User, Users, Baby, Package } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+
+const PERSONA_ICONS: Record<string, { icon: LucideIcon; color: string }> = {
+    all:          { icon: Users, color: '#aa5a9e' },
+    papa:         { icon: User,  color: '#3b82f6' },
+    conjoint:     { icon: User,  color: '#ec4899' },
+    enfant:       { icon: User,  color: '#6366f1' },
+    famille:      { icon: User,  color: '#f472b6' },
+    'bebe-garcon':{ icon: Baby,  color: '#0ea5e9' },
+    'bebe-fille': { icon: Baby,  color: '#fb7185' },
+};
 
 const inputCls =
     'w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
@@ -17,13 +27,13 @@ const Label = ({ children, required }: { children: ReactNode; required?: boolean
 
 const CartPage = () => {
     const {
-        items, giftMessage, deliveryInfo,
-        updateQuantity, removeFromCart, clearCart,
+        items, giftBundles, giftMessage, deliveryInfo,
+        updateQuantity, removeFromCart, removeGiftBundle, clearCart,
         setGiftMessage, setDeliveryInfo, getTotalPrice,
     } = useCart();
 
     const { toast } = useToast();
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const navigate = useNavigate();
 
     const handleQuantityChange = (productId: number | string, newQuantity: number) => {
         if (newQuantity <= 0) removeFromCart(productId);
@@ -39,27 +49,11 @@ const CartPage = () => {
         if (!deliveryInfo.recipientName || !deliveryInfo.deliveryAddress) {
             toast('Veuillez remplir les informations de livraison.', 'error'); return;
         }
-        setIsCheckingOut(true);
-        setTimeout(() => {
-            const order: Order = {
-                id: `ORD-${Date.now()}`,
-                date: new Date().toISOString(),
-                items: [...items],
-                deliveryInfo: { ...deliveryInfo },
-                giftMessage,
-                total: getTotalPrice(),
-                status: 'confirmed',
-            };
-            const existing: Order[] = JSON.parse(localStorage.getItem('tc_orders') || '[]');
-            localStorage.setItem('tc_orders', JSON.stringify([order, ...existing]));
-            toast('Commande passée avec succès ! Votre cadeau sera livré bientôt.', 'success');
-            clearCart();
-            setIsCheckingOut(false);
-        }, 2000);
+        navigate('/checkout');
     };
 
     // ── Empty state ──────────────────────────────────────────────────────────
-    if (items.length === 0) {
+    if (items.length === 0 && giftBundles.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
                 <div className="text-center max-w-sm">
@@ -91,7 +85,9 @@ const CartPage = () => {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900">Mon Panier</h1>
                     <p className="text-slate-400 text-sm mt-1">
-                        {items.length} article{items.length > 1 ? 's' : ''} · {getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span>
+                        {items.length + giftBundles.reduce((t, b) => t + b.items.length, 0)} article{(items.length + giftBundles.length) > 1 ? 's' : ''}
+                        {giftBundles.length > 0 && <span> · <span className="text-[#aa5a9e] font-medium">{giftBundles.length} cadeau{giftBundles.length > 1 ? 'x' : ''} composé{giftBundles.length > 1 ? 's' : ''}</span></span>}
+                        {' '}· {getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span>
                     </p>
                 </div>
 
@@ -100,10 +96,81 @@ const CartPage = () => {
                     {/* ── LEFT : items + gift message ── */}
                     <div className="lg:col-span-2 space-y-5">
 
+                        {/* ── Cadeaux composés ── */}
+                        {giftBundles.length > 0 && (
+                            <div className="space-y-3">
+                                <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                    <Gift className="h-4 w-4 text-[#aa5a9e]" />
+                                    Cadeaux composés
+                                    <span className="text-slate-400 font-normal">({giftBundles.length})</span>
+                                </h2>
+                                {giftBundles.map(bundle => {
+                                    const persona = PERSONA_ICONS[bundle.personaKey] ?? PERSONA_ICONS['all'];
+                                    const PersonaIcon = persona.icon;
+                                    return (
+                                        <div key={bundle.id} className="bg-white rounded-2xl border-2 overflow-hidden"
+                                            style={{ borderColor: `${persona.color}30` }}>
+
+                                            {/* Bundle header */}
+                                            <div className="px-5 py-3 flex items-center justify-between"
+                                                style={{ background: `${persona.color}08` }}>
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                                                        style={{ background: `${persona.color}20` }}>
+                                                        <PersonaIcon className="h-4 w-4" style={{ color: persona.color }} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900">
+                                                            {bundle.personaLabel || 'Cadeau personnalisé'}
+                                                            {bundle.recipientName && <span className="text-slate-500 font-normal"> pour {bundle.recipientName}</span>}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400">{bundle.items.length} article{bundle.items.length > 1 ? 's' : ''} · {bundle.total.toFixed(2)} DH</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => removeGiftBundle(bundle.id)}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+
+                                            {/* Bundle items */}
+                                            <div className="divide-y divide-slate-50">
+                                                {bundle.items.map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-3 px-5 py-3">
+                                                        <img src={item.image || '/placeholder.jpg'} alt={item.name}
+                                                            onError={e => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                                                            className="w-12 h-12 rounded-xl object-cover bg-slate-100 flex-shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-semibold text-slate-900 truncate">{item.name}</p>
+                                                            <p className="text-xs text-slate-400">x{item.quantity} · {item.price} DH/u</p>
+                                                        </div>
+                                                        <p className="text-sm font-bold flex-shrink-0" style={{ color: '#aa5a9e' }}>
+                                                            {(item.price * item.quantity).toFixed(2)} DH
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Bundle message */}
+                                            {bundle.message && (
+                                                <div className="px-5 py-3 border-t border-slate-50 flex items-start gap-2"
+                                                    style={{ background: `${persona.color}05` }}>
+                                                    <MessageSquare className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: persona.color }} />
+                                                    <p className="text-xs italic text-slate-600">"{bundle.message}"</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
                         {/* Articles */}
+                        {items.length > 0 && (
                         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
                             <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
-                                <h2 className="font-bold text-slate-900 text-sm">
+                                <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                    <Package className="h-4 w-4 text-slate-400" />
                                     Articles <span className="text-slate-400 font-normal ml-1">({items.length})</span>
                                 </h2>
                                 <button onClick={clearCart}
@@ -164,6 +231,7 @@ const CartPage = () => {
                                 ))}
                             </div>
                         </div>
+                        )}
 
                         {/* Gift message */}
                         <div className="bg-white rounded-2xl border border-slate-100 p-6">
@@ -266,20 +334,10 @@ const CartPage = () => {
                             {/* CTA */}
                             <button
                                 onClick={handleCheckout}
-                                disabled={isCheckingOut}
-                                className="w-full flex items-center justify-center gap-2 text-white py-3.5 rounded-2xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-xl disabled:opacity-60"
+                                className="w-full flex items-center justify-center gap-2 text-white py-3.5 rounded-2xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-xl"
                                 style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                {isCheckingOut ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Traitement…
-                                    </>
-                                ) : (
-                                    <>
-                                        <CreditCard className="h-4 w-4" />
-                                        Passer la commande
-                                    </>
-                                )}
+                                <CreditCard className="h-4 w-4" />
+                                Passer au paiement
                             </button>
 
                             {/* Trust */}

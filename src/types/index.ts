@@ -22,6 +22,16 @@ export interface CartItem extends Product {
     quantity: number
 }
 
+export interface GiftBundle {
+    id: string
+    items: CartItem[]
+    message: string
+    recipientName: string
+    personaKey: string
+    personaLabel: string
+    total: number
+}
+
 export interface ImportantDate {
     id: string
     user_id: string
@@ -55,8 +65,10 @@ export interface Order {
     id: string
     date: string
     items: CartItem[]
+    giftBundles: GiftBundle[]
     deliveryInfo: DeliveryInfo
     giftMessage: string
     total: number
     status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+    payment_method?: string
 }
