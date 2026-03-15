@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Store, ChevronDown, UserPlus, LogOut, LayoutDashboard, Bell, Calendar, X } from 'lucide-react';
+import { ShoppingCart, User, Store, ChevronDown, UserPlus, LogOut, LayoutDashboard, Bell, Calendar, X, Home, Package, Gift, Cake, Heart, PartyPopper, CalendarDays } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import logo from '../../public/logo.png';
 
-const TYPE_ICONS: Record<string, string> = {
-    birthday: '🎂', anniversary: '💑', fete: '🎉', other: '📅',
+const TYPE_ICONS: Record<string, LucideIcon> = {
+    birthday: Cake, anniversary: Heart, fete: PartyPopper, other: CalendarDays,
 };
 
 const Header = () => {
@@ -76,16 +77,17 @@ const Header = () => {
                     {/* ── Nav links (center) ── */}
                     <nav className="hidden md:flex items-center gap-1">
                         {[
-                            { to: '/',              label: 'Accueil' },
-                            { to: '/products',      label: 'Produits' },
-                            { to: '/compose-gift',  label: 'Composer un cadeau' },
-                        ].map(link => (
+                            { to: '/',             label: 'Accueil',            icon: Home,    clientOnly: false },
+                            { to: '/products',     label: 'Produits',           icon: Package, clientOnly: false },
+                            { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,    clientOnly: true },
+                        ].filter(link => !(link.clientOnly && role === 'supplier')).map(({ to, label, icon: Icon }) => (
                             <Link
-                                key={link.to}
-                                to={link.to}
-                                className="px-4 py-2 rounded-full text-sm font-medium text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200"
+                                key={to}
+                                to={to}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200"
                             >
-                                {link.label}
+                                <Icon className="h-4 w-4" />
+                                {label}
                             </Link>
                         ))}
                     </nav>
@@ -107,8 +109,8 @@ const Header = () => {
                             )}
                         </Link>
 
-                        {/* ── Notification bell (only when logged in) ── */}
-                        {user && (
+                        {/* ── Notification bell (only for client, not supplier) ── */}
+                        {user && role !== 'supplier' && (
                             <div className="relative" ref={notifRef}>
                                 <button
                                     onClick={openNotif}
@@ -150,7 +152,7 @@ const Header = () => {
                                         <div className="max-h-72 overflow-y-auto">
                                             {notifications.length === 0 ? (
                                                 <div className="text-center py-8 px-4">
-                                                    <div className="text-3xl mb-2">🎉</div>
+                                                    <PartyPopper className="h-8 w-8 mx-auto mb-2 text-slate-300" />
                                                     <p className="text-sm text-slate-500 font-medium">Aucun rappel pour le moment</p>
                                                     <p className="text-xs text-slate-400 mt-1">Vos dates importantes apparaîtront ici</p>
                                                 </div>
@@ -158,12 +160,12 @@ const Header = () => {
                                                 notifications.map(n => (
                                                     <div key={n.id}
                                                         className="flex items-start gap-3 px-4 py-3 border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                        <span className="text-xl flex-shrink-0 mt-0.5">{TYPE_ICONS[n.type]}</span>
+                                                        {(() => { const Icon = TYPE_ICONS[n.type] ?? CalendarDays; return <Icon className="h-5 w-5 flex-shrink-0 mt-0.5 text-slate-500" />; })()}
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-sm font-semibold text-slate-900 truncate">{n.title}</p>
                                                             <p className="text-xs text-slate-500 mt-0.5">
                                                                 {n.daysUntil === 0
-                                                                    ? "C'est aujourd'hui ! 🎉"
+                                                                    ? "C'est aujourd'hui !"
                                                                     : `Dans ${n.daysUntil} jour${n.daysUntil > 1 ? 's' : ''}`}
                                                             </p>
                                                         </div>
@@ -247,13 +249,15 @@ const Header = () => {
                                             </div>
 
                                             <div className="px-2 py-1 space-y-0.5">
-                                                <Link to="/my-dates" onClick={close}
-                                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
-                                                    <div className="w-8 h-8 rounded-xl bg-[#6fc7d9]/10 flex items-center justify-center group-hover:bg-[#6fc7d9]/20 transition-colors">
-                                                        <Calendar className="h-4 w-4 text-[#6fc7d9]" />
-                                                    </div>
-                                                    <span className="font-medium">Mon calendrier</span>
-                                                </Link>
+                                                {role !== 'supplier' && (
+                                                    <Link to="/my-dates" onClick={close}
+                                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
+                                                        <div className="w-8 h-8 rounded-xl bg-[#6fc7d9]/10 flex items-center justify-center group-hover:bg-[#6fc7d9]/20 transition-colors">
+                                                            <Calendar className="h-4 w-4 text-[#6fc7d9]" />
+                                                        </div>
+                                                        <span className="font-medium">Mon calendrier</span>
+                                                    </Link>
+                                                )}
 
                                                 {role === 'supplier' && (
                                                     <Link to="/supplier" onClick={close}

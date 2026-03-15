@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit3, Calendar, Bell, Check, X, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Edit3, Calendar, Bell, Check, X, RotateCcw, Cake, Heart, PartyPopper, Lock, Info } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -8,11 +9,11 @@ import type { ImportantDate } from '../types/index';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DATE_TYPES: { value: ImportantDate['type']; label: string; icon: string; color: string }[] = [
-    { value: 'birthday',    label: 'Anniversaire',  icon: '🎂', color: 'from-pink-400 to-rose-500' },
-    { value: 'anniversary', label: 'Anniversaire de couple', icon: '💑', color: 'from-red-400 to-pink-500' },
-    { value: 'fete',        label: 'Fête / Célébration', icon: '🎉', color: 'from-amber-400 to-orange-500' },
-    { value: 'other',       label: 'Autre',          icon: '📅', color: 'from-[#6fc7d9] to-[#aa5a9e]' },
+const DATE_TYPES: { value: ImportantDate['type']; label: string; icon: LucideIcon; color: string }[] = [
+    { value: 'birthday',    label: 'Anniversaire',           icon: Cake,        color: 'from-pink-400 to-rose-500' },
+    { value: 'anniversary', label: 'Anniversaire de couple', icon: Heart,       color: 'from-red-400 to-pink-500' },
+    { value: 'fete',        label: 'Fête / Célébration',     icon: PartyPopper, color: 'from-amber-400 to-orange-500' },
+    { value: 'other',       label: 'Autre',                  icon: Calendar,    color: 'from-[#6fc7d9] to-[#aa5a9e]' },
 ];
 
 const REMINDER_OPTIONS = [
@@ -80,9 +81,9 @@ const ImportantDatesPage = () => {
             <div className="min-h-screen flex items-center justify-center px-6"
                 style={{ background: 'linear-gradient(135deg, #aa5a9e22 0%, #ffffff 50%, #6fc7d922 100%)' }}>
                 <div className="text-center max-w-sm">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center text-4xl"
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center"
                         style={{ background: 'linear-gradient(135deg, #aa5a9e22, #6fc7d922)' }}>
-                        🔒
+                        <Lock className="h-9 w-9 text-[#aa5a9e]" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">Connexion requise</h1>
                     <p className="text-slate-400 text-sm mb-8">
@@ -118,7 +119,7 @@ const ImportantDatesPage = () => {
                 toast('Date mise à jour !', 'success');
             } else {
                 await addDate(form);
-                toast('Date ajoutée ! Vous recevrez un rappel. 🎉', 'success');
+                toast('Date ajoutée ! Vous recevrez un rappel.', 'success');
             }
             resetForm();
         } catch {
@@ -200,7 +201,7 @@ const ImportantDatesPage = () => {
                                                     : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
                                             }`}
                                         >
-                                            <span className="text-2xl">{t.icon}</span>
+                                            <t.icon className="h-5 w-5" />
                                             <span className="text-[11px] font-semibold leading-tight">{t.label}</span>
                                         </button>
                                     ))}
@@ -310,7 +311,7 @@ const ImportantDatesPage = () => {
                     </div>
                 ) : sortedDates.length === 0 ? (
                     <div className="text-center py-16 bg-white rounded-3xl border border-slate-100">
-                        <div className="text-5xl mb-4">📅</div>
+                        <Calendar className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                         <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune date enregistrée</h3>
                         <p className="text-slate-400 text-sm mb-6">
                             Ajoutez des dates importantes pour recevoir des rappels et ne jamais oublier.
@@ -345,8 +346,8 @@ const ImportantDatesPage = () => {
                                 >
                                     <div className="flex items-center gap-4 p-5">
                                         {/* Icon */}
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${info.color} flex items-center justify-center text-2xl flex-shrink-0 shadow-sm`}>
-                                            {info.icon}
+                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${info.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                                            <info.icon className="h-6 w-6 text-white" />
                                         </div>
 
                                         {/* Info */}
@@ -356,7 +357,7 @@ const ImportantDatesPage = () => {
                                                 {isToday && (
                                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
                                                         style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                                        AUJOURD'HUI 🎉
+                                                        AUJOURD'HUI
                                                     </span>
                                                 )}
                                                 {isSoon && (
@@ -413,8 +414,9 @@ const ImportantDatesPage = () => {
                 {sortedDates.length > 0 && (
                     <div className="rounded-2xl p-5 text-center"
                         style={{ background: 'linear-gradient(135deg, #aa5a9e15, #6fc7d915)' }}>
-                        <p className="text-slate-700 font-medium mb-3">
-                            💡 Une date approche ? Trouvez le cadeau parfait dès maintenant.
+                        <p className="text-slate-700 font-medium mb-3 flex items-center justify-center gap-2">
+                            <Info className="h-4 w-4 text-slate-500" />
+                            Une date approche ? Trouvez le cadeau parfait dès maintenant.
                         </p>
                         <Link to="/products"
                             className="inline-flex items-center gap-2 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 hover:shadow-md transition-all"

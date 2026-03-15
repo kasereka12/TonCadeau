@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node create-admin.mjs)",
+      "Bash(del \"c:\\\\Users\\\\GBT_00A\\\\Downloads\\\\Toncadeau\\\\TonCadeau\\\\create-admin.mjs\")"
+    ]
+  }
+}

@@ -5,18 +5,36 @@ import { supabase } from '../lib/supabase';
 import type { Product } from '../types';
 
 const recipients = [
-    { key: 'papa', icon: 'fa-solid fa-person', label: 'Homme' },
-    { key: 'conjoint', icon: 'fa-solid fa-person-dress', label: 'Femme' },
-    { key: 'enfant', icon: 'fa-solid fa-child', label: 'Jeune Garçon' },
-    { key: 'famille', icon: 'fa-solid fa-child-dress', label: 'Jeune Fille' },
-    { key: 'bebe-garcon', icon: 'fa-solid fa-baby', label: 'Bébé Garçon' },
-    { key: 'bebe-fille', icon: 'fa-solid fa-baby', label: 'Bébé Fille' },
+    { key: 'papa', icon: 'fa-solid fa-person', label: 'Homme', ageRange: '18 ans +' },
+    { key: 'conjoint', icon: 'fa-solid fa-person-dress', label: 'Femme', ageRange: '18 ans +' },
+    { key: 'enfant', icon: 'fa-solid fa-child', label: 'Jeune Garçon', ageRange: '6 – 17 ans' },
+    { key: 'famille', icon: 'fa-solid fa-child-dress', label: 'Jeune Fille', ageRange: '6 – 17 ans' },
+    { key: 'bebe-garcon', icon: 'fa-solid fa-baby', label: 'Bébé Garçon', ageRange: '0 – 5 ans' },
+    { key: 'bebe-fille', icon: 'fa-solid fa-baby', label: 'Bébé Fille', ageRange: '0 – 5 ans' },
 ];
 
 const HomePage = () => {
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlide, setHeroSlide] = useState(0);
+    const [productSlide, setProductSlide] = useState(0);
+    const [newsletterEmail, setNewsletterEmail] = useState('');
+    const [newsletterSent, setNewsletterSent] = useState(false);
+    const [contact, setContact] = useState({ name: '', email: '', message: '' });
+    const [contactSent, setContactSent] = useState(false);
+
+    const handleNewsletter = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newsletterEmail) { setNewsletterSent(true); setNewsletterEmail(''); }
+    };
+
+    const handleContact = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (contact.name && contact.email && contact.message) {
+            setContactSent(true);
+            setContact({ name: '', email: '', message: '' });
+        }
+    };
 
     const heroImages = [
         {
@@ -43,7 +61,7 @@ const HomePage = () => {
     ];
 
     useEffect(() => {
-        supabase.from('products').select('*').order('created_at', { ascending: false }).limit(4)
+        supabase.from('products').select('*').order('created_at', { ascending: false }).limit(12)
             .then(({ data }) => { if (data) setFeaturedProducts(data as Product[]); });
     }, []);
 
@@ -60,6 +78,17 @@ const HomePage = () => {
         }, 10000);
         return () => clearInterval(timer);
     }, []);
+
+    const VISIBLE = 3;
+
+    useEffect(() => {
+        if (featuredProducts.length <= VISIBLE) return;
+        const maxSlide = featuredProducts.length - VISIBLE;
+        const t = setInterval(() => {
+            setProductSlide((prev) => (prev >= maxSlide ? 0 : prev + 1));
+        }, 2500);
+        return () => clearInterval(t);
+    }, [featuredProducts]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -158,6 +187,9 @@ const HomePage = () => {
                                     <h3 className="text-base font-semibold text-white/90 group-hover:text-white transition-colors">
                                         {r.label}
                                     </h3>
+                                    <p className="text-xs text-white/50 mt-1 group-hover:text-white/70 transition-colors">
+                                        {r.ageRange}
+                                    </p>
                                 </Link>
                             ))}
                         </div>
@@ -216,67 +248,230 @@ const HomePage = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                            {featuredProducts.map((product) => (
-                                <div
-                                    key={product.id}
-                                    className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 hover:border-white/25 transition-all duration-300 flex flex-col"
-                                >
-                                    <div className="overflow-hidden">
-                                        <img
-                                            src={product.image || '/placeholder.jpg'}
-                                            alt={product.name}
-                                            className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-                                        />
-                                    </div>
-                                    <div className="p-5 flex flex-col flex-1">
-                                        <h3 className="font-semibold text-base text-white mb-1.5">
-                                            {product.name}
-                                        </h3>
-                                        <p className="text-white/60 text-sm mb-3 line-clamp-2 font-light leading-relaxed">
-                                            {product.description}
-                                        </p>
-                                        <div className="flex items-center mb-4">
-                                            <div className="flex gap-0.5">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        className={`h-3.5 w-3.5 ${i < Math.floor(product.rating)
-                                                            ? 'text-amber-400 fill-amber-400'
-                                                            : 'text-white/20'
-                                                            }`}
-                                                    />
-                                                ))}
+                        {/* Sliding carousel — 3 visible */}
+                        <div className="relative overflow-hidden">
+                            <div
+                                className="flex transition-transform duration-700 ease-in-out"
+                                style={{ transform: `translateX(calc(-${productSlide} * (100% / ${VISIBLE})))` }}
+                            >
+                                {featuredProducts.map((product) => (
+                                    <div
+                                        key={product.id}
+                                        className="shrink-0 px-2.5"
+                                        style={{ width: `calc(100% / ${VISIBLE})` }}
+                                    >
+                                        <div className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 hover:border-white/25 transition-all duration-300 flex flex-col h-full">
+                                            <div className="overflow-hidden">
+                                                <img
+                                                    src={product.image || '/placeholder.jpg'}
+                                                    alt={product.name}
+                                                    className="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                                                />
                                             </div>
-                                            <span className="text-xs text-white/50 ml-2">
-                                                {product.rating}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between items-center mt-auto">
-                                            <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                                                {product.price} €
-                                            </span>
-                                            <Link
-                                                to={`/products/${product.id}`}
-                                                className="bg-white/10 border border-white/15 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-white/20 transition-all duration-300"
-                                            >
-                                                Voir
-                                            </Link>
+                                            <div className="p-5 flex flex-col flex-1">
+                                                <h3 className="font-semibold text-base text-white mb-1.5">
+                                                    {product.name}
+                                                </h3>
+                                                <p className="text-white/60 text-sm mb-3 line-clamp-2 font-light leading-relaxed">
+                                                    {product.description}
+                                                </p>
+                                                <div className="flex items-center mb-4">
+                                                    <div className="flex gap-0.5">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star
+                                                                key={i}
+                                                                className={`h-3.5 w-3.5 ${i < Math.floor(product.rating)
+                                                                    ? 'text-amber-400 fill-amber-400'
+                                                                    : 'text-white/20'
+                                                                    }`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-xs text-white/50 ml-2">{product.rating}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-auto">
+                                                    <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                                                        {product.price} DH <span className="text-xs opacity-60">${(product.price * 0.10).toFixed(0)}</span>
+                                                    </span>
+                                                    <Link
+                                                        to={`/products/${product.id}`}
+                                                        className="bg-white/10 border border-white/15 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-white/20 transition-all duration-300"
+                                                    >
+                                                        Voir
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+
+                            {/* Dots */}
+                            <div className="flex justify-center gap-2 mt-8">
+                                {featuredProducts.length > VISIBLE &&
+                                    Array.from({ length: featuredProducts.length - VISIBLE + 1 }).map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setProductSlide(i)}
+                                            className={`h-2 rounded-full transition-all duration-500 ${i === productSlide ? 'bg-white w-8' : 'bg-white/30 hover:bg-white/50 w-2'}`}
+                                        />
+                                    ))
+                                }
+                            </div>
                         </div>
 
-                        <div className="text-center mt-14">
-                            <button className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+                        <div className="text-center mt-12">
+                            <Link
+                                to="/products"
+                                className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                            >
                                 Voir Tous les Produits
                                 <ArrowRight className="h-4 w-4" />
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </section>
+
+                {/* ── NEWSLETTER ── */}
+                <section className="py-24 px-6 flex justify-center items-center">
+                    <div className="max-w-2xl w-full text-center">
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl px-8 py-14">
+                            <div className="text-4xl mb-5">
+                                <i className="fa-solid fa-envelope text-white/70" />
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-3">
+                                Restez Inspiré
+                            </h2>
+                            <p className="text-base text-white/60 font-light mb-8">
+                                Recevez nos meilleures idées cadeaux, offres exclusives et nouveautés directement dans votre boîte mail.
+                            </p>
+                            {newsletterSent ? (
+                                <div className="bg-cyan-400/10 border border-cyan-400/30 rounded-2xl px-6 py-4 text-cyan-300 font-medium">
+                                    Merci ! Vous êtes maintenant abonné(e) à notre newsletter.
+                                </div>
+                            ) : (
+                                <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-3">
+                                    <input
+                                        type="email"
+                                        value={newsletterEmail}
+                                        onChange={(e) => setNewsletterEmail(e.target.value)}
+                                        placeholder="Votre adresse email..."
+                                        required
+                                        className="flex-1 bg-white/8 border border-white/15 rounded-full px-6 py-3.5 text-white placeholder-white/40 focus:outline-none focus:border-white/40 text-sm"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+                                    >
+                                        S'abonner
+                                    </button>
+                                </form>
+                            )}
+                            <p className="text-xs text-white/30 mt-4">
+                                Pas de spam. Désabonnement possible à tout moment.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ── CONTACT ── */}
+                <section className="py-24 px-6 flex justify-center items-center">
+                    <div className="max-w-4xl w-full">
+                        <div className="text-center mb-14">
+                            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-3">
+                                Contactez-Nous
+                            </h2>
+                            <p className="text-base text-white/60 font-light">
+                                Une question, une suggestion ? On est là pour vous aider.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8 items-start">
+                            {/* Info */}
+                            <div className="flex flex-col gap-5">
+                                {[
+                                    { icon: 'fa-solid fa-location-dot', title: 'Adresse', detail: 'Casablanca, Maroc' },
+                                    { icon: 'fa-solid fa-phone', title: 'Téléphone', detail: '+212 6 00 00 00 00' },
+                                    { icon: 'fa-solid fa-envelope', title: 'Email', detail: 'contact@toncadeau.ma' },
+                                ].map((item) => (
+                                    <div key={item.title} className="flex items-center gap-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-5">
+                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-400/20 to-purple-500/20 border border-white/10 flex items-center justify-center shrink-0">
+                                            <i className={`${item.icon} text-white/70 text-sm`} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-white/40 mb-0.5">{item.title}</p>
+                                            <p className="text-sm font-medium text-white/90">{item.detail}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Form */}
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-8">
+                                {contactSent ? (
+                                    <div className="text-center py-8">
+                                        <div className="text-4xl mb-4">
+                                            <i className="fa-solid fa-circle-check text-cyan-400" />
+                                        </div>
+                                        <p className="text-white font-semibold text-lg mb-1">Message envoyé !</p>
+                                        <p className="text-white/50 text-sm">Nous vous répondrons dans les plus brefs délais.</p>
+                                        <button
+                                            onClick={() => setContactSent(false)}
+                                            className="mt-6 text-xs text-white/40 hover:text-white/70 transition-colors underline"
+                                        >
+                                            Envoyer un autre message
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleContact} className="flex flex-col gap-4">
+                                        <div>
+                                            <label className="block text-xs text-white/50 mb-1.5 ml-1">Nom complet</label>
+                                            <input
+                                                type="text"
+                                                value={contact.name}
+                                                onChange={(e) => setContact({ ...contact, name: e.target.value })}
+                                                placeholder="Votre nom..."
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-white/30 focus:outline-none focus:border-white/30 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-white/50 mb-1.5 ml-1">Email</label>
+                                            <input
+                                                type="email"
+                                                value={contact.email}
+                                                onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                                                placeholder="Votre email..."
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-white/30 focus:outline-none focus:border-white/30 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-white/50 mb-1.5 ml-1">Message</label>
+                                            <textarea
+                                                value={contact.message}
+                                                onChange={(e) => setContact({ ...contact, message: e.target.value })}
+                                                placeholder="Votre message..."
+                                                required
+                                                rows={4}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-white/30 focus:outline-none focus:border-white/30 text-sm resize-none"
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white px-8 py-3.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2 mt-1"
+                                        >
+                                            Envoyer le message
+                                            <ArrowRight className="h-4 w-4" />
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </div>
     );

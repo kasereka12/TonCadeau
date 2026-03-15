@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, Eye, EyeOff } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { User, Eye, EyeOff, Gift, MessageSquare, Star, Lock, Store, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const { signIn } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Detect if redirected from a protected page
+    const from = (location.state as { from?: string })?.from ?? '';
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -59,15 +63,15 @@ const LoginPage = () => {
                     </p>
                     <div className="mt-10 grid grid-cols-1 gap-4 w-full max-w-xs">
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
-                            <span className="text-2xl">🎁</span>
+                            <Gift className="h-6 w-6 text-white/80" />
                             <p className="text-sm font-semibold text-left">Accédez à vos commandes</p>
                         </div>
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
-                            <span className="text-2xl">💌</span>
+                            <MessageSquare className="h-6 w-6 text-white/80" />
                             <p className="text-sm font-semibold text-left">Gérez vos messages cadeaux</p>
                         </div>
                         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-4">
-                            <span className="text-2xl">⭐</span>
+                            <Star className="h-6 w-6 text-white/80" />
                             <p className="text-sm font-semibold text-left">Profitez d'offres exclusives</p>
                         </div>
                     </div>
@@ -80,12 +84,18 @@ const LoginPage = () => {
                     <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 border border-white/50">
                         <div className="text-center mb-8">
                             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] rounded-full flex items-center justify-center">
-                                <User className="h-10 w-10 text-white" />
+                                {from === '/admin/gestion' ? <Settings className="h-10 w-10 text-white" /> :
+                                 from === '/supplier'      ? <Store    className="h-10 w-10 text-white" /> :
+                                                            <User     className="h-10 w-10 text-white" />}
                             </div>
                             <h2 className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
                                 Connexion
                             </h2>
-                            <p className="text-gray-600 mt-2">Accédez à votre espace personnel</p>
+                            <p className="text-gray-600 mt-2">
+                                {from === '/admin/gestion' ? 'Espace administrateur' :
+                                 from === '/supplier'      ? 'Espace fournisseur' :
+                                                            'Accédez à votre espace personnel'}
+                            </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
@@ -158,7 +168,7 @@ const LoginPage = () => {
 
                         <div className="mt-6 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
                             <p className="text-xs text-gray-600 text-center">
-                                🔒 Connexion sécurisée par Supabase Auth
+                                <Lock className="inline h-3.5 w-3.5 mr-1" />Connexion sécurisée par Supabase Auth
                             </p>
                         </div>
                     </div>

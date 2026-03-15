@@ -125,7 +125,7 @@ const Footer = () => {
                         <div className="mt-8 p-4 rounded-2xl border border-white/8"
                             style={{ background: 'rgba(255,255,255,0.03)' }}>
                             <p className="text-xs text-white/35 leading-relaxed">
-                                🔒 Paiements sécurisés · Livraison suivie · Satisfaction garantie
+                                Paiements sécurisés · Livraison suivie · Satisfaction garantie
                             </p>
                         </div>
                     </div>

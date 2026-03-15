@@ -258,7 +258,7 @@ const RegisterPage = () => {
 
                         <div className="mt-4 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
                             <p className="text-xs text-gray-600 text-center">
-                                🔒 Vos données sont protégées et sécurisées
+                                Vos données sont protégées et sécurisées
                             </p>
                         </div>
                     </div>

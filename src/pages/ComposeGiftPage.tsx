@@ -70,7 +70,7 @@ const ComposeGiftPage = () => {
             }
         });
 
-        toast('Votre cadeau personnalisé a été ajouté au panier ! 🎁', 'success');
+        toast('Votre cadeau personnalisé a été ajouté au panier !', 'success');
 
         // Réinitialiser
         setSelectedProducts([]);
@@ -142,7 +142,7 @@ const ComposeGiftPage = () => {
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-lg font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                                        {product.price}€
+                                                        {product.price} DH
                                                     </span>
                                                     <button
                                                         onClick={() => addProductToGift(product)}
@@ -199,7 +199,7 @@ const ComposeGiftPage = () => {
                                                 <div className="flex-1">
                                                     <h4 className="font-semibold text-sm text-gray-800">{product.name}</h4>
                                                     <p className="font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent text-sm">
-                                                        {product.price}€
+                                                        {product.price} DH
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
@@ -262,7 +262,7 @@ const ComposeGiftPage = () => {
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-bold text-gray-800">Total:</span>
                                     <span className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                        {getTotalPrice().toFixed(2)}€
+                                        {getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span>
                                     </span>
                                 </div>
                             </div>
@@ -279,7 +279,7 @@ const ComposeGiftPage = () => {
 
                             <div className="mt-4 p-3 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
                                 <p className="text-xs text-gray-600 text-center font-medium">
-                                    💝 Vous pourrez personnaliser la livraison lors du checkout
+                                    Vous pourrez personnaliser la livraison lors du checkout
                                 </p>
                             </div>
                         </div>

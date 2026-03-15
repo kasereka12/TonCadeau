@@ -23,6 +23,7 @@ import LoginPage from './pages/LoginPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ImportantDatesPage from './pages/ImportantDatesPage';
 import { NotificationProvider } from './context/NotificationContext';
+import Preloader from './components/Preloader';
 import './style.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <ToastProvider>
             <NotificationProvider>
             <CartProvider>
+                <Preloader />
                 <Router>
                     <div className="min-h-screen flex flex-col">
                         <Header />

@@ -219,7 +219,7 @@ const ProductsPage = () => {
 
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                        {product.price}€
+                                        {product.price} DH <span className="text-xs opacity-60">${(product.price * 0.10).toFixed(0)}</span>
                                     </span>
                                     <span className="text-sm text-white/60 bg-white/10 px-2 py-1 rounded-full">
                                         Qté : {product.stock}

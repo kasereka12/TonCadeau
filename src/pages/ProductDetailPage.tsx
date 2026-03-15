@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Star, ChevronRight, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Star, ChevronRight, Plus, Minus, AlertTriangle, Check, Gift, Truck, Lock, Undo2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
@@ -155,14 +155,19 @@ const ProductDetailPage = () => {
 
                             {/* Price */}
                             <div className="flex items-end gap-3 mb-6 pb-6 border-b border-slate-100">
-                                <span className="text-4xl font-bold text-slate-900">{product.price} €</span>
+                                <div>
+                                    <span className="text-4xl font-bold text-slate-900">{product.price} DH</span>
+                                    <span className="ml-2 text-lg text-slate-400">${(product.price * 0.10).toFixed(2)}</span>
+                                </div>
                                 <span className={`mb-1 text-sm font-semibold px-2.5 py-1 rounded-lg ${product.stock < 10
                                     ? 'bg-red-50 text-red-500'
                                     : 'bg-emerald-50 text-emerald-600'
                                     }`}>
-                                    {product.stock < 10
-                                        ? `⚠ Plus que ${product.stock}`
-                                        : `✓ ${product.stock} disponibles`}
+                                    {product.stock < 10 ? (
+                                        <span className="flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" />Plus que {product.stock}</span>
+                                    ) : (
+                                        <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" />{product.stock} disponibles</span>
+                                    )}
                                 </span>
                             </div>
 
@@ -188,7 +193,7 @@ const ProductDetailPage = () => {
                                     </button>
                                 </div>
                                 <span className="text-sm text-slate-400">
-                                    Total : <strong className="text-slate-700">{(product.price * quantity).toFixed(2)} €</strong>
+                                    Total : <strong className="text-slate-700">{(product.price * quantity).toFixed(2)} DH</strong> <span className="text-slate-400 text-xs">(${(product.price * quantity * 0.10).toFixed(2)})</span>
                                 </span>
                             </div>
 
@@ -210,20 +215,20 @@ const ProductDetailPage = () => {
                                     to="/compose-gift"
                                     className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 font-semibold text-sm transition-all"
                                 >
-                                    🎁 Composer
+                                    <Gift className="h-4 w-4" /> Composer
                                 </Link>
                             </div>
 
                             {/* Trust badges */}
                             <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-100">
                                 {[
-                                    { icon: '🚚', label: 'Livraison rapide' },
-                                    { icon: '🔒', label: 'Paiement sécurisé' },
-                                    { icon: '↩️', label: 'Retour facile' },
-                                ].map(b => (
-                                    <div key={b.label} className="flex flex-col items-center gap-1 text-center">
-                                        <span className="text-lg">{b.icon}</span>
-                                        <span className="text-[11px] text-slate-400 font-medium">{b.label}</span>
+                                    { icon: Truck,  label: 'Livraison rapide' },
+                                    { icon: Lock,   label: 'Paiement sécurisé' },
+                                    { icon: Undo2,  label: 'Retour facile' },
+                                ].map(({ icon: Icon, label }) => (
+                                    <div key={label} className="flex flex-col items-center gap-1 text-center">
+                                        <Icon className="h-5 w-5 text-slate-400" />
+                                        <span className="text-[11px] text-slate-400 font-medium">{label}</span>
                                     </div>
                                 ))}
                             </div>
@@ -257,7 +262,7 @@ const ProductDetailPage = () => {
                                     <div className="p-3">
                                         <p className="text-sm font-semibold text-slate-900 truncate">{p.name}</p>
                                         <div className="flex items-center justify-between mt-1.5">
-                                            <span className="font-bold text-sm" style={{ color: '#aa5a9e' }}>{p.price} €</span>
+                                            <span className="font-bold text-sm" style={{ color: '#aa5a9e' }}>{p.price} DH</span>
                                             <div className="flex items-center gap-0.5">
                                                 <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
                                                 <span className="text-xs text-slate-400">{p.rating}</span>

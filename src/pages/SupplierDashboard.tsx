@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Navigate } from 'react-router-dom';
 import {
     Package, TrendingUp, DollarSign, AlertTriangle,
     Plus, Trash2, Upload, X, Store, LogOut,
-    Eye, EyeOff, Edit3, Star,
+    Edit3, Star,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -13,19 +14,21 @@ const inputCls ='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 
 
 
 const SupplierDashboard = () => {
-    const { user, signIn, signOut } = useAuth();
+    const { user, signOut } = useAuth();
     const { toast } = useToast();
 
-    const [products, setProducts]         = useState<Product[]>([]);
-    const [email, setEmail]               = useState('');
-    const [password, setPassword]         = useState('');
-    const [showPwd, setShowPwd]           = useState(false);
-    const [loginError, setLoginError]     = useState('');
-    const [loginLoading, setLoginLoading] = useState(false);
-    const [newProduct, setNewProduct]     = useState({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
-    const [imageFile, setImageFile]       = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState('');
-    const [uploading, setUploading]       = useState(false);
+    const [products, setProducts] = useState<Product[]>([]);
+    const MOROCCAN_CITIES = [
+        'Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès','Oujda',
+        'Kénitra','Tétouan','Safi','El Jadida','Nador','Béni Mellal','Mohammedia',
+        'Khouribga','Settat','Larache','Khémisset','Berrechid','Taza','Laâyoune',
+    ];
+
+    const [newProduct, setNewProduct]       = useState({ name: '', recipient: '', category: '', city: '', price: '', description: '', stock: '' });
+    const [imageFile, setImageFile]         = useState<File | null>(null);
+    const [imagePreview, setImagePreview]   = useState('');
+    const [uploading, setUploading]         = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const isSupplier   = user?.user_metadata?.role === 'supplier';
@@ -42,18 +45,6 @@ const SupplierDashboard = () => {
             .eq('supplier', supplierName)
             .order('created_at', { ascending: false });
         if (!error && data) setProducts(data);
-    };
-
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoginError(''); setLoginLoading(true);
-        const { data, error } = await signIn(email, password);
-        setLoginLoading(false);
-        if (error) { setLoginError('Email ou mot de passe incorrect.'); return; }
-        if (data?.user?.user_metadata?.role !== 'supplier') {
-            await signOut();
-            setLoginError("Accès refusé. Ce compte n'a pas les droits fournisseur.");
-        }
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,15 +74,72 @@ const SupplierDashboard = () => {
             price: parseFloat(newProduct.price), description: newProduct.description,
             stock: parseInt(newProduct.stock), image: urlData.publicUrl,
             supplier: supplierName, rating: 4.5, tags: newProduct.recipient ? [newProduct.recipient] : [],
+            city: newProduct.city || null,
         }]).select().single();
         setUploading(false);
         if (!error && data) {
             setProducts(prev => [data as Product, ...prev]);
-            setNewProduct({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
+            setNewProduct({ name: '', recipient: '', category: '', city: '', price: '', description: '', stock: '' });
             clearImage();
             toast('Produit ajouté avec succès !', 'success');
         } else {
             toast(`Erreur : ${error?.message ?? "Impossible d'ajouter le produit."}`, 'error');
+        }
+    };
+
+    const handleStartEdit = (product: Product) => {
+        setEditingProduct(product);
+        setNewProduct({
+            name:        product.name,
+            recipient:   (product.tags?.[0] ?? ''),
+            category:    product.category,
+            city:        product.city ?? '',
+            price:       String(product.price),
+            description: product.description,
+            stock:       String(product.stock),
+        });
+        setImageFile(null);
+        setImagePreview(product.image ?? '');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingProduct(null);
+        setNewProduct({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
+        clearImage();
+    };
+
+    const handleUpdateProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingProduct) return;
+        setUploading(true);
+        let imageUrl = editingProduct.image;
+        if (imageFile) {
+            const ext      = imageFile.name.split('.').pop();
+            const filePath = `${supplierName}/${Date.now()}.${ext}`;
+            const { error: upErr } = await supabase.storage
+                .from('product-images').upload(filePath, imageFile, { upsert: false });
+            if (upErr) { toast(`Erreur upload : ${upErr.message}`, 'error'); setUploading(false); return; }
+            const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(filePath);
+            imageUrl = urlData.publicUrl;
+        }
+        const { data, error } = await supabase.from('products').update({
+            name:        newProduct.name,
+            category:    newProduct.category,
+            price:       parseFloat(newProduct.price),
+            description: newProduct.description,
+            stock:       parseInt(newProduct.stock),
+            image:       imageUrl,
+            tags:        newProduct.recipient ? [newProduct.recipient] : [],
+            city:        newProduct.city || null,
+        }).eq('id', editingProduct.id).select().single();
+        setUploading(false);
+        if (!error && data) {
+            setProducts(prev => prev.map(p => p.id === editingProduct.id ? data as Product : p));
+            toast('Produit mis à jour !', 'success');
+            handleCancelEdit();
+        } else {
+            toast(`Erreur : ${error?.message ?? 'Impossible de modifier le produit.'}`, 'error');
         }
     };
 
@@ -120,7 +168,7 @@ const SupplierDashboard = () => {
         },
         {
             label: 'Chiffre d\'affaires',
-            value: '15 680 €',
+            value: '15 680 DH',
             icon: DollarSign,
             gradient: 'from-violet-500 to-purple-700',
             light: 'bg-violet-50',
@@ -136,116 +184,7 @@ const SupplierDashboard = () => {
         },
     ];
 
-    // ════════════════════════════════════════════════════════════════════════
-    // LOGIN
-    // ════════════════════════════════════════════════════════════════════════
-    if (!user || !isSupplier) {
-        return (
-            <div className="min-h-screen flex">
-                {/* Left decorative column */}
-                <div
-                    className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, #aa5a9e 0%, #7b3fa0 50%, #4a2d8a 100%)' }}
-                >
-                    {/* Pattern */}
-                    <div className="absolute inset-0 opacity-10"
-                        style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-                    {/* Blobs */}
-                    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-30"
-                        style={{ background: '#6fc7d9' }} />
-                    <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-20"
-                        style={{ background: '#6fc7d9' }} />
-
-                    <div className="relative z-10 flex flex-col justify-center items-center text-center px-14 text-white w-full">
-                        <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center mb-6 shadow-2xl">
-                            <Store className="h-10 w-10 text-white" />
-                        </div>
-                        <h1 className="text-4xl font-bold mb-3 tracking-tight">Espace Fournisseur</h1>
-                        <div className="w-16 h-1 rounded-full bg-white/30 mx-auto mb-5" />
-                        <p className="text-white/65 text-base leading-relaxed max-w-xs">
-                            Gérez vos produits et développez votre activité sur TonCadeau.
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-4 mt-10 w-full max-w-xs">
-                            {[
-                                { icon: Package,     label: 'Gestion produits' },
-                                { icon: TrendingUp,  label: 'Suivi des ventes' },
-                                { icon: DollarSign,  label: 'Vos revenus' },
-                                { icon: Store,       label: 'Votre boutique' },
-                            ].map(({ icon: Icon, label }) => (
-                                <div key={label} className="bg-white/10 backdrop-blur rounded-2xl p-4 text-left">
-                                    <Icon className="h-5 w-5 mb-2 text-white/70" />
-                                    <p className="text-xs font-semibold text-white/80">{label}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right form column */}
-                <div className="w-full lg:w-1/2 flex items-center justify-center bg-slate-50 px-8 py-12">
-                    <div className="w-full max-w-md">
-                        {/* Card */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
-                            <div className="text-center mb-8">
-                                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-lg"
-                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                    <Store className="h-8 w-8 text-white" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-slate-900">Connexion</h2>
-                                <p className="text-slate-400 text-sm mt-1">Accédez à votre tableau de bord</p>
-                            </div>
-
-                            <form onSubmit={handleLogin} className="space-y-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">Email</label>
-                                    <input type="email" required value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        className={inputCls} placeholder="votre@email.com" />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">Mot de passe</label>
-                                    <div className="relative">
-                                        <input type={showPwd ? 'text' : 'password'} required value={password}
-                                            onChange={e => setPassword(e.target.value)}
-                                            className={inputCls + ' pr-11'} placeholder="••••••••" />
-                                        <button type="button" onClick={() => setShowPwd(v => !v)}
-                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                            {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {loginError && (
-                                    <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                                        <p className="text-red-500 text-sm text-center">{loginError}</p>
-                                    </div>
-                                )}
-
-                                <button type="submit" disabled={loginLoading}
-                                    className="w-full text-white py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-lg disabled:opacity-60 mt-1"
-                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                    {loginLoading ? 'Connexion…' : 'Se connecter'}
-                                </button>
-                            </form>
-
-                            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-                                <p className="text-sm text-slate-400">
-                                    Pas encore fournisseur ?{' '}
-                                    <a href="/supplier/register"
-                                        className="font-semibold transition-colors"
-                                        style={{ color: '#aa5a9e' }}>
-                                        Créer un compte
-                                    </a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    if (!user || !isSupplier) return <Navigate to="/login" state={{ from: '/supplier' }} replace />;
 
     // ════════════════════════════════════════════════════════════════════════
     // DASHBOARD
@@ -302,21 +241,34 @@ const SupplierDashboard = () => {
                 {/* ── Main 2-column grid ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                    {/* ── LEFT : Add product form ── */}
+                    {/* ── LEFT : Add / Edit product form ── */}
                     <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
                         {/* Card header */}
-                        <div className="px-6 py-5 border-b border-slate-50 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                                style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                <Plus className="h-4 w-4 text-white" />
+                        <div className="px-6 py-5 border-b border-slate-50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                    {editingProduct ? <Edit3 className="h-4 w-4 text-white" /> : <Plus className="h-4 w-4 text-white" />}
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-slate-900 text-sm">
+                                        {editingProduct ? 'Modifier le produit' : 'Ajouter un produit'}
+                                    </h2>
+                                    <p className="text-xs text-slate-400">
+                                        {editingProduct ? editingProduct.name : 'Remplissez le formulaire ci-dessous'}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="font-bold text-slate-900 text-sm">Ajouter un produit</h2>
-                                <p className="text-xs text-slate-400">Remplissez le formulaire ci-dessous</p>
-                            </div>
+                            {editingProduct && (
+                                <button type="button" onClick={handleCancelEdit}
+                                    className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all">
+                                    <X className="h-3.5 w-3.5" />
+                                    Annuler
+                                </button>
+                            )}
                         </div>
 
-                        <form onSubmit={handleAddProduct} className="p-6 space-y-4">
+                        <form onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct} className="p-6 space-y-4">
                             {/* Image upload */}
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -409,11 +361,24 @@ const SupplierDashboard = () => {
                                 </select>
                             </div>
 
+                            {/* City */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    Ville de départ
+                                </label>
+                                <select required value={newProduct.city}
+                                    onChange={e => setNewProduct({ ...newProduct, city: e.target.value })}
+                                    className={inputCls + ' bg-white'}>
+                                    <option value="">Choisir une ville</option>
+                                    {MOROCCAN_CITIES.map(c => <option key={c}>{c}</option>)}
+                                </select>
+                            </div>
+
                             {/* Price + Stock */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                                        Prix (€)
+                                        Prix (DH)
                                     </label>
                                     <input type="number" step="0.01" required value={newProduct.price}
                                         onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
@@ -443,7 +408,10 @@ const SupplierDashboard = () => {
                             <button type="submit" disabled={uploading}
                                 className="w-full text-white py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-lg hover:shadow-[#aa5a9e]/20 disabled:opacity-60 mt-1"
                                 style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
-                                {uploading ? 'Upload en cours…' : 'Publier le produit'}
+                                {uploading
+                                    ? 'Upload en cours…'
+                                    : editingProduct ? 'Enregistrer les modifications' : 'Publier le produit'
+                                }
                             </button>
                         </form>
                     </div>
@@ -504,9 +472,10 @@ const SupplierDashboard = () => {
 
                                     {/* Price + actions */}
                                     <div className="flex flex-col items-end gap-2">
-                                        <span className="text-sm font-bold text-slate-900">{product.price} €</span>
+                                        <span className="text-sm font-bold text-slate-900">{product.price} DH</span>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all">
+                                            <button onClick={() => handleStartEdit(product)}
+                                                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#aa5a9e]/10 flex items-center justify-center text-slate-400 hover:text-[#aa5a9e] transition-all">
                                                 <Edit3 className="h-3 w-3" />
                                             </button>
                                             <button onClick={() => handleDelete(product.id)}

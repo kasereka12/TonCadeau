@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Package, TrendingUp, DollarSign, Settings, Eye, Trash2 } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { Users, Package, TrendingUp, DollarSign, Settings, Eye, Trash2, Truck, MapPin, Save } from 'lucide-react';
+
+const MOROCCAN_CITIES = [
+    'Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès','Oujda',
+    'Kénitra','Tétouan','Safi','El Jadida','Nador','Béni Mellal','Mohammedia',
+    'Khouribga','Settat','Larache','Khémisset','Berrechid','Taza','Laâyoune',
+];
+
+const DELIVERY_STORAGE_KEY = 'tc_delivery_prices';
+
+function loadDeliveryPrices(): Record<string, string> {
+    try { return JSON.parse(localStorage.getItem(DELIVERY_STORAGE_KEY) ?? '{}'); }
+    catch { return {}; }
+}
 import { suppliers } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Product } from '../types';
 
 const AdminPanel = () => {
-    const { user, signIn, signOut } = useAuth();
+    const { user, signOut } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [products, setProducts] = useState<Product[]>([]);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loginError, setLoginError] = useState('');
-    const [loginLoading, setLoginLoading] = useState(false);
+    const [deliveryPrices, setDeliveryPrices] = useState<Record<string, string>>(loadDeliveryPrices);
+    const [deliverySaved, setDeliverySaved] = useState(false);
 
     const isAdmin = user?.user_metadata?.role === 'admin';
 
@@ -38,127 +50,7 @@ const AdminPanel = () => {
         totalRevenue: 45680.50
     };
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoginError('');
-        setLoginLoading(true);
-        const { data, error } = await signIn(email, password);
-        setLoginLoading(false);
-        if (error) {
-            setLoginError('Email ou mot de passe incorrect.');
-            return;
-        }
-        if (data?.user?.user_metadata?.role !== 'admin') {
-            await signOut();
-            setLoginError('Accès refusé. Ce compte n\'a pas les droits administrateur.');
-        }
-    };
-
-    if (!user || !isAdmin) {
-        return (
-            <div className="min-h-screen flex">
-                {/* Colonne Gauche - Image & Branding */}
-                <div
-                    className="hidden lg:flex lg:w-1/2 bg-cover bg-center relative"
-                    style={{ backgroundImage: "url('../public/bannier4.jpg')" }}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#6fc7d9]/90 to-[#a7549b]/90"></div>
-                    <div className="relative z-10 flex flex-col justify-center items-center text-center px-12 text-white">
-                        <div className="mb-8">
-                            <h1 className="text-5xl font-bold mb-4">CadeauBox</h1>
-                            <div className="h-1 w-32 bg-white mx-auto rounded-full"></div>
-                        </div>
-                        <p className="text-xl mb-6 max-w-md leading-relaxed">
-                            Plateforme de gestion des cadeaux personnalisés
-                        </p>
-                        <div className="grid grid-cols-2 gap-6 mt-8">
-                            <div className="bg-white/20 backdrop-blur-md rounded-xl p-6">
-                                <Package className="h-10 w-10 mx-auto mb-3" />
-                                <p className="text-sm font-semibold">Gestion des Produits</p>
-                            </div>
-                            <div className="bg-white/20 backdrop-blur-md rounded-xl p-6">
-                                <Users className="h-10 w-10 mx-auto mb-3" />
-                                <p className="text-sm font-semibold">Gestion des Fournisseurs</p>
-                            </div>
-                            <div className="bg-white/20 backdrop-blur-md rounded-xl p-6">
-                                <TrendingUp className="h-10 w-10 mx-auto mb-3" />
-                                <p className="text-sm font-semibold">Statistiques Avancées</p>
-                            </div>
-                            <div className="bg-white/20 backdrop-blur-md rounded-xl p-6">
-                                <Settings className="h-10 w-10 mx-auto mb-3" />
-                                <p className="text-sm font-semibold">Paramètres Complets</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Colonne Droite - Formulaire de Connexion */}
-                <div className="w-full lg:w-1/2 flex items-center justify-center bg-gradient-to-br from-[#6fc7d9]/5 to-[#a7549b]/5 px-8">
-                    <div className="w-full max-w-md">
-                        <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 border border-white/50">
-                            <div className="text-center mb-8">
-                                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#6fc7d9] to-[#a7549b] rounded-full flex items-center justify-center">
-                                    <Settings className="h-10 w-10 text-white" />
-                                </div>
-                                <h2 className="text-3xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                    Connexion Admin
-                                </h2>
-                                <p className="text-gray-600 mt-2">Accédez au panneau d'administration</p>
-                            </div>
-
-                            <form onSubmit={handleLogin} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Email Administrateur
-                                    </label>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                        placeholder="admin@cadeaubox.fr"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Mot de passe
-                                    </label>
-                                    <input
-                                        type="password"
-                                        required
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-[#6fc7d9]/30 rounded-xl focus:ring-2 focus:ring-[#a7549b] focus:border-[#a7549b] transition-all"
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-
-                                {loginError && (
-                                    <p className="text-red-500 text-sm text-center font-medium">{loginError}</p>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={loginLoading}
-                                    className="w-full bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
-                                >
-                                    {loginLoading ? 'Connexion...' : 'Se connecter'}
-                                </button>
-                            </form>
-
-                            <div className="mt-6 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl">
-                                <p className="text-xs text-gray-600 text-center">
-                                    🔒 Connexion sécurisée - Accès réservé aux administrateurs
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    if (!user || !isAdmin) return <Navigate to="/login" state={{ from: '/admin/gestion' }} replace />;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#6fc7d9]/10 via-white to-[#a7549b]/10">
@@ -188,10 +80,11 @@ const AdminPanel = () => {
                 <div className="mb-8">
                     <nav className="flex flex-wrap justify-center md:justify-start gap-2 md:space-x-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-3 border border-white/50">
                         {[
-                            { id: 'dashboard', name: 'Tableau de Bord', icon: TrendingUp },
-                            { id: 'products', name: 'Produits', icon: Package },
-                            { id: 'suppliers', name: 'Fournisseurs', icon: Users },
-                            { id: 'settings', name: 'Paramètres', icon: Settings }
+                            { id: 'dashboard',  name: 'Tableau de Bord', icon: TrendingUp },
+                            { id: 'products',   name: 'Produits',        icon: Package },
+                            { id: 'suppliers',  name: 'Fournisseurs',    icon: Users },
+                            { id: 'delivery',   name: 'Livraison',       icon: Truck },
+                            { id: 'settings',   name: 'Paramètres',      icon: Settings },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -262,7 +155,7 @@ const AdminPanel = () => {
                                     <div className="ml-4">
                                         <p className="text-sm font-semibold text-gray-600">Chiffre d'affaires</p>
                                         <p className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                            {stats.totalRevenue.toFixed(2)}€
+                                            {stats.totalRevenue.toFixed(2)} DH
                                         </p>
                                     </div>
                                 </div>
@@ -277,7 +170,7 @@ const AdminPanel = () => {
                                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl border border-[#6fc7d9]/20 hover:border-[#a7549b]/40 transition-all">
                                     <div>
                                         <p className="font-semibold text-gray-800">Nouvelle commande #1234</p>
-                                        <p className="text-sm text-gray-600">Bouquet de roses - 45.99€</p>
+                                        <p className="text-sm text-gray-600">Bouquet de roses - 45.99 DH</p>
                                     </div>
                                     <span className="text-sm text-gray-500 font-medium">Il y a 2 heures</span>
                                 </div>
@@ -318,6 +211,7 @@ const AdminPanel = () => {
                                         <th className="text-left py-4 px-4 font-bold text-gray-700">Prix</th>
                                         <th className="text-left py-4 px-4 font-bold text-gray-700">Stock</th>
                                         <th className="text-left py-4 px-4 font-bold text-gray-700">Fournisseur</th>
+                                        <th className="text-left py-4 px-4 font-bold text-gray-700">Ville</th>
                                         <th className="text-left py-4 px-4 font-bold text-gray-700">Actions</th>
                                     </tr>
                                 </thead>
@@ -343,7 +237,7 @@ const AdminPanel = () => {
                                                 </span>
                                             </td>
                                             <td className="py-4 px-4 font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
-                                                {product.price}€
+                                                {product.price} DH
                                             </td>
                                             <td className="py-4 px-4">
                                                 <span className={`font-semibold ${product.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
@@ -351,6 +245,16 @@ const AdminPanel = () => {
                                                 </span>
                                             </td>
                                             <td className="py-4 px-4 text-gray-700">{product.supplier}</td>
+                                            <td className="py-4 px-4">
+                                                {product.city ? (
+                                                    <span className="flex items-center gap-1 text-sm text-gray-600">
+                                                        <MapPin className="h-3.5 w-3.5 text-[#aa5a9e]" />
+                                                        {product.city}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-gray-300 italic">—</span>
+                                                )}
+                                            </td>
                                             <td className="py-4 px-4">
                                                 <div className="flex space-x-2">
                                                     <button
@@ -397,6 +301,61 @@ const AdminPanel = () => {
                     </div>
                 )}
 
+                {/* Delivery Tab */}
+                {activeTab === 'delivery' && (
+                    <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] bg-clip-text text-transparent">
+                                    Prix de Livraison par Ville
+                                </h2>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Définissez le tarif de livraison (en MAD) pour chaque ville du Maroc.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    localStorage.setItem(DELIVERY_STORAGE_KEY, JSON.stringify(deliveryPrices));
+                                    setDeliverySaved(true);
+                                    setTimeout(() => setDeliverySaved(false), 2500);
+                                }}
+                                className="flex items-center gap-2 bg-gradient-to-r from-[#6fc7d9] to-[#a7549b] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all"
+                            >
+                                <Save className="h-4 w-4" />
+                                {deliverySaved ? 'Sauvegardé !' : 'Sauvegarder'}
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {MOROCCAN_CITIES.map(city => (
+                                <div key={city} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 hover:border-[#6fc7d9]/40 transition-all">
+                                    <MapPin className="h-4 w-4 text-[#aa5a9e] flex-shrink-0" />
+                                    <span className="text-sm font-semibold text-gray-700 flex-1 truncate">{city}</span>
+                                    <div className="flex items-center gap-1">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.5"
+                                            placeholder="0"
+                                            value={deliveryPrices[city] ?? ''}
+                                            onChange={e => setDeliveryPrices(prev => ({ ...prev, [city]: e.target.value }))}
+                                            className="w-20 text-right text-sm font-bold text-gray-800 bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#aa5a9e] transition-all"
+                                        />
+                                        <span className="text-xs text-gray-400 font-medium">MAD</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Summary */}
+                        <div className="mt-6 p-4 bg-gradient-to-r from-[#6fc7d9]/10 to-[#a7549b]/10 rounded-xl border border-[#6fc7d9]/20">
+                            <p className="text-xs text-gray-500 font-medium">
+                                {Object.values(deliveryPrices).filter(v => v && Number(v) > 0).length} / {MOROCCAN_CITIES.length} villes configurées
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Settings Tab */}
                 {activeTab === 'settings' && (
                     <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/50">
@@ -429,7 +388,7 @@ const AdminPanel = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Frais de livraison (€)
+                                    Frais de livraison (DH)
                                 </label>
                                 <input
                                     type="number"

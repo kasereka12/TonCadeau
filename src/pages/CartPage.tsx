@@ -41,7 +41,7 @@ const CartPage = () => {
         }
         setIsCheckingOut(true);
         setTimeout(() => {
-            toast('Commande passée avec succès ! Votre cadeau sera livré bientôt. 🎁', 'success');
+            toast('Commande passée avec succès ! Votre cadeau sera livré bientôt.', 'success');
             clearCart();
             setIsCheckingOut(false);
         }, 2000);
@@ -80,7 +80,7 @@ const CartPage = () => {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900">Mon Panier</h1>
                     <p className="text-slate-400 text-sm mt-1">
-                        {items.length} article{items.length > 1 ? 's' : ''} · {getTotalPrice().toFixed(2)} €
+                        {items.length} article{items.length > 1 ? 's' : ''} · {getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span>
                     </p>
                 </div>
 
@@ -117,7 +117,7 @@ const CartPage = () => {
                                             <p className="font-semibold text-slate-900 text-sm truncate">{item.name}</p>
                                             <p className="text-xs text-slate-400 mt-0.5 truncate">{item.description}</p>
                                             <p className="text-sm font-bold mt-1" style={{ color: '#aa5a9e' }}>
-                                                {item.price} €
+                                                {item.price} DH
                                             </p>
                                         </div>
 
@@ -141,7 +141,7 @@ const CartPage = () => {
                                         {/* Subtotal + delete */}
                                         <div className="text-right flex-shrink-0 w-20">
                                             <p className="font-bold text-slate-900 text-sm">
-                                                {(item.price * item.quantity).toFixed(2)} €
+                                                {(item.price * item.quantity).toFixed(2)} DH
                                             </p>
                                             <button
                                                 onClick={() => removeFromCart(item.id)}
@@ -238,7 +238,7 @@ const CartPage = () => {
                             <div className="border-t border-slate-100 pt-5 space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-slate-500">Sous-total</span>
-                                    <span className="font-medium text-slate-900">{getTotalPrice().toFixed(2)} €</span>
+                                    <span className="font-medium text-slate-900">{getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span></span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-slate-500">Livraison</span>
@@ -247,7 +247,7 @@ const CartPage = () => {
                                 <div className="flex justify-between pt-3 border-t border-slate-100">
                                     <span className="font-bold text-slate-900">Total</span>
                                     <span className="text-xl font-bold" style={{ color: '#aa5a9e' }}>
-                                        {getTotalPrice().toFixed(2)} €
+                                        {getTotalPrice().toFixed(2)} DH <span className="text-xs opacity-60">(${(getTotalPrice() * 0.10).toFixed(2)})</span>
                                     </span>
                                 </div>
                             </div>
@@ -273,7 +273,7 @@ const CartPage = () => {
 
                             {/* Trust */}
                             <p className="text-center text-xs text-slate-400">
-                                🔒 Paiement sécurisé · Livraison gratuite
+                                Paiement sécurisé · Livraison gratuite
                             </p>
                         </div>
                     </div>

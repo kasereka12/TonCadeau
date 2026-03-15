@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const signOut = async () => {
         await supabase.auth.signOut()
+        localStorage.removeItem('tc_preloader_shown')
     }
 
     return (

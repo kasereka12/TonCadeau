@@ -9,6 +9,7 @@ export interface Product {
     supplier: string
     rating: number
     tags: string[]
+    city?: string
 }
 
 export interface Supplier {
