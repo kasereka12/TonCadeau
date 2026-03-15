@@ -1,41 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    Package, TrendingUp, DollarSign, Plus, Trash2,
-    Upload, X, Store, LogOut, BarChart3,
-    AlertTriangle, Menu, Star, Eye, EyeOff,
+    Package, TrendingUp, DollarSign, AlertTriangle,
+    Plus, Trash2, Upload, X, Store, LogOut,
+    Eye, EyeOff, Edit3, Star,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Product } from '../types';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-const Field = ({
-    label, children,
-}: { label: string; children: React.ReactNode }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
-        {children}
-    </div>
-);
-
 const inputCls =
-    'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all';
+    'w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
 
 // ────────────────────────────────────────────────────────────────────────────
 const SupplierDashboard = () => {
     const { user, signIn, signOut } = useAuth();
 
-    // ── state ──
     const [products, setProducts]         = useState<Product[]>([]);
     const [email, setEmail]               = useState('');
     const [password, setPassword]         = useState('');
     const [showPwd, setShowPwd]           = useState(false);
     const [loginError, setLoginError]     = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
-    const [activeNav, setActiveNav]       = useState<'dashboard' | 'products'>('dashboard');
-    const [sidebarOpen, setSidebarOpen]   = useState(true);
-    const [showPanel, setShowPanel]       = useState(false);
-    const [newProduct, setNewProduct]     = useState({ name: '', category: '', price: '', description: '', stock: '' });
+    const [newProduct, setNewProduct]     = useState({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
     const [imageFile, setImageFile]       = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState('');
     const [uploading, setUploading]       = useState(false);
@@ -57,7 +43,6 @@ const SupplierDashboard = () => {
         if (!error && data) setProducts(data);
     };
 
-    // ── handlers ──
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoginError(''); setLoginLoading(true);
@@ -82,11 +67,6 @@ const SupplierDashboard = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const resetPanel = () => {
-        setNewProduct({ name: '', category: '', price: '', description: '', stock: '' });
-        clearImage(); setShowPanel(false);
-    };
-
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!imageFile) { alert('Veuillez sélectionner une image.'); return; }
@@ -101,11 +81,16 @@ const SupplierDashboard = () => {
             name: newProduct.name, category: newProduct.category,
             price: parseFloat(newProduct.price), description: newProduct.description,
             stock: parseInt(newProduct.stock), image: urlData.publicUrl,
-            supplier: supplierName, rating: 4.5, tags: [],
+            supplier: supplierName, rating: 4.5, tags: newProduct.recipient ? [newProduct.recipient] : [],
         }]).select().single();
         setUploading(false);
-        if (!error && data) { setProducts(prev => [data as Product, ...prev]); resetPanel(); }
-        else alert(`Erreur : ${error?.message ?? "Impossible d'ajouter le produit."}`);
+        if (!error && data) {
+            setProducts(prev => [data as Product, ...prev]);
+            setNewProduct({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
+            clearImage();
+        } else {
+            alert(`Erreur : ${error?.message ?? "Impossible d'ajouter le produit."}`);
+        }
     };
 
     const handleDelete = async (id: number | string) => {
@@ -114,87 +99,145 @@ const SupplierDashboard = () => {
         if (!error) setProducts(prev => prev.filter(p => p.id !== id));
     };
 
-    // ── derived ──
     const stats = [
-        { label: 'Produits',      value: products.length,                          icon: Package,       bg: 'bg-violet-50',  text: 'text-violet-600' },
-        { label: 'Ventes',        value: '1 250',                                  icon: TrendingUp,    bg: 'bg-emerald-50', text: 'text-emerald-600' },
-        { label: 'Revenus',       value: '15 680 €',                               icon: DollarSign,    bg: 'bg-blue-50',    text: 'text-blue-600' },
-        { label: 'Stock faible',  value: products.filter(p => p.stock < 10).length, icon: AlertTriangle, bg: 'bg-orange-50',  text: 'text-orange-600' },
+        {
+            label: 'Produits',
+            value: products.length,
+            icon: Package,
+            gradient: 'from-[#aa5a9e] to-[#8a3d8f]',
+            light: 'bg-[#aa5a9e]/10',
+            text: 'text-[#aa5a9e]',
+        },
+        {
+            label: 'Ventes ce mois',
+            value: '1 250',
+            icon: TrendingUp,
+            gradient: 'from-[#6fc7d9] to-[#4aafc2]',
+            light: 'bg-[#6fc7d9]/10',
+            text: 'text-[#6fc7d9]',
+        },
+        {
+            label: 'Chiffre d\'affaires',
+            value: '15 680 €',
+            icon: DollarSign,
+            gradient: 'from-violet-500 to-purple-700',
+            light: 'bg-violet-50',
+            text: 'text-violet-600',
+        },
+        {
+            label: 'Quantité faible',
+            value: products.filter(p => p.stock < 10).length,
+            icon: AlertTriangle,
+            gradient: 'from-orange-400 to-red-500',
+            light: 'bg-orange-50',
+            text: 'text-orange-500',
+        },
     ];
 
-    // ── nav items ──
-    const navItems = [
-        { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
-        { id: 'products',  label: 'Mes produits',    icon: Package },
-    ] as const;
-
     // ════════════════════════════════════════════════════════════════════════
-    // LOGIN SCREEN
+    // LOGIN
     // ════════════════════════════════════════════════════════════════════════
     if (!user || !isSupplier) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-                {/* Decorative blobs */}
-                <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="min-h-screen flex">
+                {/* Left decorative column */}
+                <div
+                    className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg, #aa5a9e 0%, #7b3fa0 50%, #4a2d8a 100%)' }}
+                >
+                    {/* Pattern */}
+                    <div className="absolute inset-0 opacity-10"
+                        style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+                    {/* Blobs */}
+                    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-30"
+                        style={{ background: '#6fc7d9' }} />
+                    <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-20"
+                        style={{ background: '#6fc7d9' }} />
 
-                <div className="relative w-full max-w-[420px]">
-                    <div className="bg-white/8 backdrop-blur-2xl border border-white/15 rounded-3xl p-8 shadow-2xl">
-                        {/* Brand */}
-                        <div className="text-center mb-8">
-                            <div className="w-16 h-16 mx-auto mb-5 bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-900/40">
-                                <Store className="h-8 w-8 text-white" />
-                            </div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">Espace Fournisseur</h1>
-                            <p className="text-white/45 text-sm mt-1">Accédez à votre tableau de bord</p>
+                    <div className="relative z-10 flex flex-col justify-center items-center text-center px-14 text-white w-full">
+                        <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center mb-6 shadow-2xl">
+                            <Store className="h-10 w-10 text-white" />
                         </div>
+                        <h1 className="text-4xl font-bold mb-3 tracking-tight">Espace Fournisseur</h1>
+                        <div className="w-16 h-1 rounded-full bg-white/30 mx-auto mb-5" />
+                        <p className="text-white/65 text-base leading-relaxed max-w-xs">
+                            Gérez vos produits et développez votre activité sur TonCadeau.
+                        </p>
 
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <Field label="">
-                                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Email</label>
-                                <input
-                                    type="email" required value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                    className="w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 text-white text-sm placeholder-white/25 focus:outline-none focus:border-violet-500 focus:bg-white/12 transition-all"
-                                    placeholder="votre@email.com"
-                                />
-                            </Field>
-
-                            <div>
-                                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">Mot de passe</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPwd ? 'text' : 'password'} required value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        className="w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 pr-12 text-white text-sm placeholder-white/25 focus:outline-none focus:border-violet-500 focus:bg-white/12 transition-all"
-                                        placeholder="••••••••"
-                                    />
-                                    <button type="button" onClick={() => setShowPwd(v => !v)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
-                                        {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </button>
+                        <div className="grid grid-cols-2 gap-4 mt-10 w-full max-w-xs">
+                            {[
+                                { icon: Package,     label: 'Gestion produits' },
+                                { icon: TrendingUp,  label: 'Suivi des ventes' },
+                                { icon: DollarSign,  label: 'Vos revenus' },
+                                { icon: Store,       label: 'Votre boutique' },
+                            ].map(({ icon: Icon, label }) => (
+                                <div key={label} className="bg-white/10 backdrop-blur rounded-2xl p-4 text-left">
+                                    <Icon className="h-5 w-5 mb-2 text-white/70" />
+                                    <p className="text-xs font-semibold text-white/80">{label}</p>
                                 </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right form column */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center bg-slate-50 px-8 py-12">
+                    <div className="w-full max-w-md">
+                        {/* Card */}
+                        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
+                            <div className="text-center mb-8">
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-lg"
+                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                    <Store className="h-8 w-8 text-white" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900">Connexion</h2>
+                                <p className="text-slate-400 text-sm mt-1">Accédez à votre tableau de bord</p>
                             </div>
 
-                            {loginError && (
-                                <div className="bg-red-500/15 border border-red-500/25 rounded-xl px-4 py-3">
-                                    <p className="text-red-300 text-sm text-center">{loginError}</p>
+                            <form onSubmit={handleLogin} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">Email</label>
+                                    <input type="email" required value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        className={inputCls} placeholder="votre@email.com" />
                                 </div>
-                            )}
 
-                            <button type="submit" disabled={loginLoading}
-                                className="w-full mt-2 bg-gradient-to-r from-violet-600 to-purple-700 text-white py-3 rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-600 hover:shadow-xl hover:shadow-purple-900/40 transition-all duration-200 disabled:opacity-60">
-                                {loginLoading ? 'Connexion…' : 'Se connecter'}
-                            </button>
-                        </form>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">Mot de passe</label>
+                                    <div className="relative">
+                                        <input type={showPwd ? 'text' : 'password'} required value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            className={inputCls + ' pr-11'} placeholder="••••••••" />
+                                        <button type="button" onClick={() => setShowPwd(v => !v)}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                            {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                </div>
 
-                        <div className="mt-6 pt-6 border-t border-white/10 text-center">
-                            <p className="text-white/35 text-xs">
-                                Pas encore fournisseur ?{' '}
-                                <a href="/supplier/register" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
-                                    Créer un compte
-                                </a>
-                            </p>
+                                {loginError && (
+                                    <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                                        <p className="text-red-500 text-sm text-center">{loginError}</p>
+                                    </div>
+                                )}
+
+                                <button type="submit" disabled={loginLoading}
+                                    className="w-full text-white py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-lg disabled:opacity-60 mt-1"
+                                    style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                    {loginLoading ? 'Connexion…' : 'Se connecter'}
+                                </button>
+                            </form>
+
+                            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+                                <p className="text-sm text-slate-400">
+                                    Pas encore fournisseur ?{' '}
+                                    <a href="/supplier/register"
+                                        className="font-semibold transition-colors"
+                                        style={{ color: '#aa5a9e' }}>
+                                        Créer un compte
+                                    </a>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -206,330 +249,286 @@ const SupplierDashboard = () => {
     // DASHBOARD
     // ════════════════════════════════════════════════════════════════════════
     return (
-        <div className="flex h-[calc(100vh-64px)] bg-slate-50 overflow-hidden">
+        <div className="min-h-screen bg-slate-50">
 
-            {/* ── SIDEBAR ───────────────────────────────────────────────── */}
-            <aside className={`${sidebarOpen ? 'w-60' : 'w-[72px]'} bg-slate-900 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out`}>
-                {/* Toggle + logo */}
-                <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-800">
-                    <button onClick={() => setSidebarOpen(v => !v)}
-                        className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center flex-shrink-0 transition-all">
-                        <Menu className="h-4 w-4" />
-                    </button>
-                    {sidebarOpen && (
-                        <span className="text-white font-bold text-base whitespace-nowrap overflow-hidden">TonCadeau</span>
-                    )}
-                </div>
-
-                {/* Nav */}
-                <nav className="flex-1 p-3 space-y-1 mt-2">
-                    {navItems.map(item => {
-                        const Icon   = item.icon;
-                        const active = activeNav === item.id;
-                        return (
-                            <button key={item.id}
-                                onClick={() => setActiveNav(item.id)}
-                                title={!sidebarOpen ? item.label : undefined}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                                    ${active
-                                        ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/40'
-                                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                    }`}>
-                                <Icon className="h-4.5 w-4.5 flex-shrink-0 h-5 w-5" />
-                                {sidebarOpen && <span className="whitespace-nowrap">{item.label}</span>}
-                            </button>
-                        );
-                    })}
-                </nav>
-
-                {/* User */}
-                <div className="p-3 border-t border-slate-800">
-                    <div className={`flex items-center gap-3 p-2 rounded-xl ${!sidebarOpen ? 'justify-center' : ''}`}>
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
+            {/* ── Top header bar ── */}
+            <div className="bg-white border-b border-slate-100 sticky top-[68px] z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
                             {initials}
                         </div>
-                        {sidebarOpen && (
-                            <>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-white text-sm font-medium truncate">{supplierName}</p>
-                                    <p className="text-slate-500 text-xs">Fournisseur</p>
-                                </div>
-                                <button onClick={signOut}
-                                    className="text-slate-500 hover:text-red-400 transition-colors p-1" title="Déconnexion">
-                                    <LogOut className="h-4 w-4" />
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </aside>
-
-            {/* ── MAIN ──────────────────────────────────────────────────── */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-
-                {/* Top bar */}
-                <header className="bg-white border-b border-slate-100 px-6 h-16 flex items-center justify-between flex-shrink-0">
-                    <div>
-                        <h1 className="font-semibold text-slate-900 text-base">
-                            {activeNav === 'dashboard' ? 'Tableau de bord' : 'Mes produits'}
-                        </h1>
-                        <p className="text-xs text-slate-400">Bonjour, {supplierName} 👋</p>
-                    </div>
-                    <button
-                        onClick={() => setShowPanel(true)}
-                        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25">
-                        <Plus className="h-4 w-4" />
-                        Nouveau produit
-                    </button>
-                </header>
-
-                {/* Scrollable content */}
-                <main className="flex-1 overflow-y-auto p-6">
-
-                    {/* ── DASHBOARD TAB ── */}
-                    {activeNav === 'dashboard' && (
-                        <>
-                            {/* Stats */}
-                            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                                {stats.map(s => {
-                                    const Icon = s.icon;
-                                    return (
-                                        <div key={s.label} className="bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-md transition-shadow">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>
-                                                    <Icon className={`h-5 w-5 ${s.text}`} />
-                                                </div>
-                                                <span className="text-[10px] font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg uppercase tracking-wide">
-                                                    ce mois
-                                                </span>
-                                            </div>
-                                            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-                                            <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Recent products */}
-                            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                                <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-                                    <h2 className="font-semibold text-slate-900 text-sm">Produits récents</h2>
-                                    <button onClick={() => setActiveNav('products')}
-                                        className="text-violet-600 hover:text-violet-700 text-xs font-semibold transition-colors">
-                                        Voir tout →
-                                    </button>
-                                </div>
-                                <div className="divide-y divide-slate-50">
-                                    {products.slice(0, 6).map(p => (
-                                        <div key={p.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/60 transition-colors">
-                                            <img
-                                                src={p.image || '/placeholder.jpg'}
-                                                alt={p.name}
-                                                onError={e => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-                                                className="w-11 h-11 rounded-xl object-cover flex-shrink-0 bg-slate-100"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-slate-900 truncate">{p.name}</p>
-                                                <p className="text-xs text-slate-400">{p.category}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-bold text-slate-900">{p.price} €</p>
-                                                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-lg ${p.stock < 10 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
-                                                    {p.stock} en stock
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {products.length === 0 && (
-                                        <div className="text-center py-14 text-slate-400">
-                                            <Package className="h-10 w-10 mx-auto mb-3 opacity-25" />
-                                            <p className="text-sm font-medium">Aucun produit pour l'instant</p>
-                                            <button onClick={() => setShowPanel(true)}
-                                                className="mt-3 text-violet-600 text-xs font-semibold hover:text-violet-700 transition-colors">
-                                                + Ajouter mon premier produit
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {/* ── PRODUCTS TAB ── */}
-                    {activeNav === 'products' && (
                         <div>
-                            <p className="text-xs text-slate-400 mb-4 font-medium">{products.length} produit{products.length !== 1 ? 's' : ''}</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {products.map(p => (
-                                    <div key={p.id}
-                                        className="group bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-200 transition-all duration-200">
-                                        <div className="relative overflow-hidden bg-slate-100">
-                                            <img
-                                                src={p.image || '/placeholder.jpg'}
-                                                alt={p.name}
-                                                onError={e => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-                                                className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
-                                            />
-                                            {/* Delete overlay */}
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 flex items-start justify-end p-2.5">
-                                                <button
-                                                    onClick={() => handleDelete(p.id)}
-                                                    className="w-8 h-8 bg-red-500 text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all shadow-lg">
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
-                                            </div>
-                                            {/* Stock badge */}
-                                            <span className={`absolute bottom-2.5 left-2.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg shadow
-                                                ${p.stock < 10 ? 'bg-red-500 text-white' : 'bg-white/90 text-slate-700'}`}>
-                                                {p.stock < 10 ? `⚠ ${p.stock} restants` : `${p.stock} en stock`}
-                                            </span>
-                                        </div>
-                                        <div className="p-4">
-                                            <span className="inline-block text-[11px] text-violet-600 font-semibold bg-violet-50 px-2.5 py-0.5 rounded-lg mb-2">
-                                                {p.category}
-                                            </span>
-                                            <h3 className="font-semibold text-slate-900 text-sm truncate">{p.name}</h3>
-                                            <p className="text-slate-400 text-xs mt-1 line-clamp-2 leading-relaxed">{p.description}</p>
-                                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                                                <span className="font-bold text-slate-900">{p.price} €</span>
-                                                <div className="flex items-center gap-1">
-                                                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                                                    <span className="text-xs text-slate-400">{p.rating}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {/* Add card */}
-                                <button onClick={() => setShowPanel(true)}
-                                    className="min-h-[300px] border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-violet-300 hover:text-violet-500 hover:bg-violet-50/40 transition-all duration-200">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                                        <Plus className="h-6 w-6" />
-                                    </div>
-                                    <span className="text-sm font-medium">Ajouter un produit</span>
-                                </button>
-                            </div>
+                            <p className="text-sm font-semibold text-slate-900">{supplierName}</p>
+                            <p className="text-xs text-slate-400">Tableau de bord fournisseur</p>
                         </div>
-                    )}
-                </main>
+                    </div>
+                    <button onClick={signOut}
+                        className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl transition-all duration-200">
+                        <LogOut className="h-4 w-4" />
+                        <span className="hidden sm:inline">Déconnexion</span>
+                    </button>
+                </div>
             </div>
 
-            {/* ── SLIDE-OVER PANEL ──────────────────────────────────────── */}
-            {showPanel && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-                        onClick={resetPanel}
-                    />
-                    {/* Panel */}
-                    <div className="fixed right-0 top-0 h-full w-full max-w-[440px] bg-white z-50 shadow-2xl flex flex-col animate-slide-in">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
-                            <div>
-                                <h2 className="font-bold text-slate-900">Nouveau produit</h2>
-                                <p className="text-xs text-slate-400 mt-0.5">Remplissez les informations ci-dessous</p>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+                {/* ── Stats ── */}
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                    {stats.map(s => {
+                        const Icon = s.icon;
+                        return (
+                            <div key={s.label}
+                                className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md transition-shadow duration-200">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`w-10 h-10 rounded-xl ${s.light} flex items-center justify-center`}>
+                                        <Icon className={`h-5 w-5 ${s.text}`} />
+                                    </div>
+                                    <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">
+                                        total
+                                    </span>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-900 mb-0.5">{s.value}</p>
+                                <p className="text-xs text-slate-400 font-medium">{s.label}</p>
                             </div>
-                            <button onClick={resetPanel}
-                                className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all">
-                                <X className="h-4 w-4" />
-                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ── Main 2-column grid ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    {/* ── LEFT : Add product form ── */}
+                    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                        {/* Card header */}
+                        <div className="px-6 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                                style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                <Plus className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-slate-900 text-sm">Ajouter un produit</h2>
+                                <p className="text-xs text-slate-400">Remplissez le formulaire ci-dessous</p>
+                            </div>
                         </div>
 
-                        {/* Form (flex-1 so footer sticks to bottom) */}
-                        <form id="add-form" onSubmit={handleAddProduct} className="flex-1 flex flex-col overflow-hidden">
-                            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-                                {/* Image upload */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">Image du produit</label>
-                                    {imagePreview ? (
-                                        <div className="relative rounded-2xl overflow-hidden border border-slate-200">
-                                            <img src={imagePreview} alt="Aperçu" className="w-full h-48 object-cover" />
-                                            <button type="button" onClick={clearImage}
-                                                className="absolute top-3 right-3 w-8 h-8 bg-red-500 text-white rounded-xl flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg">
-                                                <X className="h-3.5 w-3.5" />
+                        <form onSubmit={handleAddProduct} className="p-6 space-y-4">
+                            {/* Image upload */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                                    Image du produit
+                                </label>
+                                {imagePreview ? (
+                                    <div className="relative rounded-2xl overflow-hidden border border-slate-200">
+                                        <img src={imagePreview} alt="Aperçu"
+                                            className="w-full h-44 object-cover" />
+                                        <button type="button" onClick={clearImage}
+                                            className="absolute top-3 right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-lg">
+                                            <X className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div onClick={() => fileInputRef.current?.click()}
+                                        className="w-full h-44 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-[#aa5a9e]/40 hover:bg-[#aa5a9e]/3 transition-all group">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-[#aa5a9e]/10 flex items-center justify-center mb-3 transition-colors">
+                                            <Upload className="h-5 w-5 text-slate-400 group-hover:text-[#aa5a9e] transition-colors" />
+                                        </div>
+                                        <p className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">
+                                            Cliquer pour uploader
+                                        </p>
+                                        <p className="text-xs text-slate-400 mt-1">JPG, PNG, WEBP — max 5 Mo</p>
+                                    </div>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/*"
+                                    onChange={handleImageChange} className="hidden" />
+                            </div>
+
+                            {/* Name */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    Nom du produit
+                                </label>
+                                <input type="text" required value={newProduct.name}
+                                    onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+                                    className={inputCls} placeholder="Ex: Bouquet de roses rouges" />
+                            </div>
+
+                            {/* Persona / Recipient */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                                    Pour qui ?
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { key: 'homme',       icon: '👨', label: 'Homme' },
+                                        { key: 'femme',       icon: '👩', label: 'Femme' },
+                                        { key: 'jeune-garcon', icon: '👦', label: 'Jeune Garçon' },
+                                        { key: 'jeune-fille', icon: '👧', label: 'Jeune Fille' },
+                                        { key: 'bebe-garcon', icon: '👶', label: 'Bébé Garçon' },
+                                        { key: 'bebe-fille',  icon: '👶', label: 'Bébé Fille' },
+                                    ].map(p => {
+                                        const active = newProduct.recipient === p.key;
+                                        return (
+                                            <button
+                                                key={p.key}
+                                                type="button"
+                                                onClick={() => setNewProduct({ ...newProduct, recipient: active ? '' : p.key })}
+                                                className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
+                                                    active
+                                                        ? 'border-[#aa5a9e] bg-[#aa5a9e]/8 text-[#aa5a9e]'
+                                                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                <span className="text-lg leading-none">{p.icon}</span>
+                                                <span className="text-[10px] font-semibold leading-tight">{p.label}</span>
                                             </button>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-full h-48 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-violet-300 hover:bg-violet-50/40 transition-all group">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-violet-100 flex items-center justify-center mb-3 transition-colors">
-                                                <Upload className="h-5 w-5 text-slate-400 group-hover:text-violet-500 transition-colors" />
-                                            </div>
-                                            <p className="text-sm font-medium text-slate-600">Cliquer pour uploader</p>
-                                            <p className="text-xs text-slate-400 mt-1">JPG, PNG, WEBP — max 5 Mo</p>
-                                        </div>
-                                    )}
-                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                </div>
-
-                                {/* Name */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Nom du produit</label>
-                                    <input type="text" required value={newProduct.name}
-                                        onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
-                                        className={inputCls} placeholder="Ex: Bouquet de roses rouges" />
-                                </div>
-
-                                {/* Category */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Catégorie</label>
-                                    <select required value={newProduct.category}
-                                        onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
-                                        className={inputCls + ' bg-white'}>
-                                        <option value="">Choisir une catégorie</option>
-                                        <option>Fleurs</option>
-                                        <option>Gourmandises</option>
-                                        <option>Accessoires</option>
-                                        <option>Beauté</option>
-                                        <option>Culture</option>
-                                        <option>Décoration</option>
-                                    </select>
-                                </div>
-
-                                {/* Price + Stock */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Prix (€)</label>
-                                        <input type="number" step="0.01" required value={newProduct.price}
-                                            onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
-                                            className={inputCls} placeholder="0.00" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Stock</label>
-                                        <input type="number" required value={newProduct.stock}
-                                            onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
-                                            className={inputCls} placeholder="0" />
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
-                                    <textarea required value={newProduct.description}
-                                        onChange={e => setNewProduct({ ...newProduct, description: e.target.value })}
-                                        className={inputCls + ' resize-none'} rows={3}
-                                        placeholder="Décrivez votre produit…" />
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            {/* Footer actions */}
-                            <div className="px-6 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
-                                <button type="button" onClick={resetPanel}
-                                    className="flex-1 border border-slate-200 rounded-xl py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-                                    Annuler
-                                </button>
-                                <button type="submit" disabled={uploading}
-                                    className="flex-1 bg-violet-600 hover:bg-violet-700 text-white rounded-xl py-3 text-sm font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/20 disabled:opacity-60">
-                                    {uploading ? 'Upload en cours…' : 'Publier le produit'}
-                                </button>
+                            {/* Category */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    Catégorie
+                                </label>
+                                <select required value={newProduct.category}
+                                    onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
+                                    className={inputCls + ' bg-white'}>
+                                    <option value="">Choisir une catégorie</option>
+                                    <option>Fleurs</option>
+                                    <option>Gourmandises</option>
+                                    <option>Accessoires</option>
+                                    <option>Beauté</option>
+                                    <option>Culture</option>
+                                    <option>Décoration</option>
+                                </select>
                             </div>
+
+                            {/* Price + Stock */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                        Prix (€)
+                                    </label>
+                                    <input type="number" step="0.01" required value={newProduct.price}
+                                        onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
+                                        className={inputCls} placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                        Quantité
+                                    </label>
+                                    <input type="number" required value={newProduct.stock}
+                                        onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
+                                        className={inputCls} placeholder="0" />
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    Description
+                                </label>
+                                <textarea required value={newProduct.description}
+                                    onChange={e => setNewProduct({ ...newProduct, description: e.target.value })}
+                                    className={inputCls + ' resize-none'} rows={3}
+                                    placeholder="Décrivez votre produit…" />
+                            </div>
+
+                            <button type="submit" disabled={uploading}
+                                className="w-full text-white py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-lg hover:shadow-[#aa5a9e]/20 disabled:opacity-60 mt-1"
+                                style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                                {uploading ? 'Upload en cours…' : 'Publier le produit'}
+                            </button>
                         </form>
                     </div>
-                </>
-            )}
+
+                    {/* ── RIGHT : Products list ── */}
+                    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col">
+                        {/* Card header */}
+                        <div className="px-6 py-5 border-b border-slate-50 flex items-center justify-between flex-shrink-0">
+                            <div>
+                                <h2 className="font-bold text-slate-900 text-sm">Mes produits</h2>
+                                <p className="text-xs text-slate-400">{products.length} produit{products.length !== 1 ? 's' : ''} publiés</p>
+                            </div>
+                            {products.length > 0 && (
+                                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg text-[#aa5a9e]"
+                                    style={{ background: 'rgba(170,90,158,0.08)' }}>
+                                    {products.filter(p => p.stock < 10).length} quantité faible
+                                </span>
+                            )}
+                        </div>
+
+                        {/* List */}
+                        <div className="flex-1 overflow-y-auto divide-y divide-slate-50 max-h-[640px]">
+                            {products.map(product => (
+                                <div key={product.id}
+                                    className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50/70 transition-colors group">
+                                    {/* Image */}
+                                    <div className="relative flex-shrink-0">
+                                        <img
+                                            src={product.image || '/placeholder.jpg'}
+                                            alt={product.name}
+                                            onError={e => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                                            className="w-14 h-14 rounded-xl object-cover bg-slate-100"
+                                        />
+                                        {product.stock < 10 && (
+                                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-400 rounded-full border-2 border-white" />
+                                        )}
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg"
+                                                style={{ background: 'rgba(170,90,158,0.08)', color: '#aa5a9e' }}>
+                                                {product.category}
+                                            </span>
+                                            <div className="flex items-center gap-0.5">
+                                                <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                                                <span className="text-[11px] text-slate-400">{product.rating}</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-0.5">
+                                            <span className={product.stock < 10 ? 'text-red-400 font-medium' : 'text-slate-400'}>
+                                                {product.stock} disponible{product.stock > 1 ? 's' : ''}
+                                            </span>
+                                        </p>
+                                    </div>
+
+                                    {/* Price + actions */}
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className="text-sm font-bold text-slate-900">{product.price} €</span>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all">
+                                                <Edit3 className="h-3 w-3" />
+                                            </button>
+                                            <button onClick={() => handleDelete(product.id)}
+                                                className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-400 hover:text-red-600 transition-all">
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {products.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                                        <Package className="h-7 w-7 opacity-40" />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-500">Aucun produit publié</p>
+                                    <p className="text-xs text-slate-400 mt-1">Ajoutez votre premier produit avec le formulaire</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
