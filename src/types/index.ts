@@ -50,3 +50,13 @@ export interface DeliveryInfo {
     deliveryDate: string
     deliveryTime: string
 }
+
+export interface Order {
+    id: string
+    date: string
+    items: CartItem[]
+    deliveryInfo: DeliveryInfo
+    giftMessage: string
+    total: number
+    status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+}

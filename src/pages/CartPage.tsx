@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { DeliveryInfo } from '../types';
+import type { DeliveryInfo, Order } from '../types';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart, Gift, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -41,6 +41,17 @@ const CartPage = () => {
         }
         setIsCheckingOut(true);
         setTimeout(() => {
+            const order: Order = {
+                id: `ORD-${Date.now()}`,
+                date: new Date().toISOString(),
+                items: [...items],
+                deliveryInfo: { ...deliveryInfo },
+                giftMessage,
+                total: getTotalPrice(),
+                status: 'confirmed',
+            };
+            const existing: Order[] = JSON.parse(localStorage.getItem('tc_orders') || '[]');
+            localStorage.setItem('tc_orders', JSON.stringify([order, ...existing]));
             toast('Commande passée avec succès ! Votre cadeau sera livré bientôt.', 'success');
             clearCart();
             setIsCheckingOut(false);

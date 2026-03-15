@@ -22,6 +22,7 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ImportantDatesPage from './pages/ImportantDatesPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 import { NotificationProvider } from './context/NotificationContext';
 import Preloader from './components/Preloader';
 import './style.css';
@@ -50,6 +51,7 @@ function App() {
                                 <Route path="/register" element={<RegisterPage />} />
                                 <Route path="/supplier/register" element={<RegisterPage />} />
                                 <Route path="/my-dates" element={<ImportantDatesPage />} />
+                                <Route path="/orders" element={<OrderHistoryPage />} />
                             </Routes>
                         </main>
                         <Footer />

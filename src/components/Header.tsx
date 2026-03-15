@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Store, ChevronDown, UserPlus, LogOut, LayoutDashboard, Bell, Calendar, X, Home, Package, Gift, Cake, Heart, PartyPopper, CalendarDays } from 'lucide-react';
+import { ShoppingCart, User, Store, ChevronDown, UserPlus, LogOut, LayoutDashboard, Bell, Calendar, X, Home, Package, Gift, Cake, Heart, PartyPopper, CalendarDays, ShoppingBag } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -79,7 +79,8 @@ const Header = () => {
                         {[
                             { to: '/',             label: 'Accueil',            icon: Home,    clientOnly: false },
                             { to: '/products',     label: 'Produits',           icon: Package, clientOnly: false },
-                            { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,    clientOnly: true },
+                            { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,        clientOnly: true },
+                            { to: '/orders',       label: 'Mes commandes',      icon: ShoppingBag, clientOnly: true },
                         ].filter(link => !(link.clientOnly && role === 'supplier')).map(({ to, label, icon: Icon }) => (
                             <Link
                                 key={to}
@@ -250,13 +251,22 @@ const Header = () => {
 
                                             <div className="px-2 py-1 space-y-0.5">
                                                 {role !== 'supplier' && (
-                                                    <Link to="/my-dates" onClick={close}
-                                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
-                                                        <div className="w-8 h-8 rounded-xl bg-[#6fc7d9]/10 flex items-center justify-center group-hover:bg-[#6fc7d9]/20 transition-colors">
-                                                            <Calendar className="h-4 w-4 text-[#6fc7d9]" />
-                                                        </div>
-                                                        <span className="font-medium">Mon calendrier</span>
-                                                    </Link>
+                                                    <>
+                                                        <Link to="/my-dates" onClick={close}
+                                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
+                                                            <div className="w-8 h-8 rounded-xl bg-[#6fc7d9]/10 flex items-center justify-center group-hover:bg-[#6fc7d9]/20 transition-colors">
+                                                                <Calendar className="h-4 w-4 text-[#6fc7d9]" />
+                                                            </div>
+                                                            <span className="font-medium">Mon calendrier</span>
+                                                        </Link>
+                                                        <Link to="/orders" onClick={close}
+                                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#aa5a9e]/8 hover:to-[#6fc7d9]/8 transition-all group">
+                                                            <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center group-hover:bg-[#aa5a9e]/20 transition-colors">
+                                                                <ShoppingBag className="h-4 w-4 text-[#aa5a9e]" />
+                                                            </div>
+                                                            <span className="font-medium">Mes commandes</span>
+                                                        </Link>
+                                                    </>
                                                 )}
 
                                                 {role === 'supplier' && (

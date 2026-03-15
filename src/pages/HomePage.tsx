@@ -18,6 +18,7 @@ const HomePage = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlide, setHeroSlide] = useState(0);
     const [productSlide, setProductSlide] = useState(0);
+    const [visibleCount, setVisibleCount] = useState(window.innerWidth < 768 ? 1 : 3);
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [newsletterSent, setNewsletterSent] = useState(false);
     const [contact, setContact] = useState({ name: '', email: '', message: '' });
@@ -79,16 +80,21 @@ const HomePage = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const VISIBLE = 3;
+    useEffect(() => {
+        const onResize = () => setVisibleCount(window.innerWidth < 768 ? 1 : 3);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
-        if (featuredProducts.length <= VISIBLE) return;
-        const maxSlide = featuredProducts.length - VISIBLE;
+        if (featuredProducts.length <= visibleCount) return;
+        const maxSlide = featuredProducts.length - visibleCount;
+        setProductSlide((prev) => (prev > maxSlide ? 0 : prev));
         const t = setInterval(() => {
             setProductSlide((prev) => (prev >= maxSlide ? 0 : prev + 1));
         }, 2500);
         return () => clearInterval(t);
-    }, [featuredProducts]);
+    }, [featuredProducts, visibleCount]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -252,13 +258,13 @@ const HomePage = () => {
                         <div className="relative overflow-hidden">
                             <div
                                 className="flex transition-transform duration-700 ease-in-out"
-                                style={{ transform: `translateX(calc(-${productSlide} * (100% / ${VISIBLE})))` }}
+                                style={{ transform: `translateX(calc(-${productSlide} * (100% / ${visibleCount})))` }}
                             >
                                 {featuredProducts.map((product) => (
                                     <div
                                         key={product.id}
                                         className="shrink-0 px-2.5"
-                                        style={{ width: `calc(100% / ${VISIBLE})` }}
+                                        style={{ width: `calc(100% / ${visibleCount})` }}
                                     >
                                         <div className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 hover:border-white/25 transition-all duration-300 flex flex-col h-full">
                                             <div className="overflow-hidden">
@@ -309,8 +315,8 @@ const HomePage = () => {
 
                             {/* Dots */}
                             <div className="flex justify-center gap-2 mt-8">
-                                {featuredProducts.length > VISIBLE &&
-                                    Array.from({ length: featuredProducts.length - VISIBLE + 1 }).map((_, i) => (
+                                {featuredProducts.length > visibleCount &&
+                                    Array.from({ length: featuredProducts.length - visibleCount + 1 }).map((_, i) => (
                                         <button
                                             key={i}
                                             onClick={() => setProductSlide(i)}
