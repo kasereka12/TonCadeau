@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Star, ChevronRight, Plus, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import type { Product } from '../types';
 
 const RECIPIENT_LABELS: Record<string, string> = {
@@ -18,6 +19,7 @@ const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { toast } = useToast();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [related, setRelated] = useState<Product[]>([]);
@@ -52,6 +54,7 @@ const ProductDetailPage = () => {
     const handleAddToCart = () => {
         if (!product) return;
         for (let i = 0; i < quantity; i++) addToCart(product);
+        toast(`${product.name} ajouté au panier !`, 'success');
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
     };

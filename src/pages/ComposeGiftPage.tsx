@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, Heart, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import type { CartItem, Product } from '../types';
 
 const ComposeGiftPage = () => {
@@ -18,6 +19,7 @@ const ComposeGiftPage = () => {
         { id: 'all', name: 'Tous' },
         ...Array.from(new Set(products.map(p => p.category))).map(c => ({ id: c, name: c }))
     ];
+    const { toast } = useToast();
     const [giftMessage, setGiftMessage] = useState('');
     const [recipientName, setRecipientName] = useState('');
     const { addToCart } = useCart();
@@ -57,7 +59,7 @@ const ComposeGiftPage = () => {
 
     const handleAddGiftToCart = () => {
         if (selectedProducts.length === 0) {
-            alert('Veuillez sélectionner au moins un produit pour votre cadeau.');
+            toast('Veuillez sélectionner au moins un produit pour votre cadeau.', 'error');
             return;
         }
 
@@ -68,7 +70,7 @@ const ComposeGiftPage = () => {
             }
         });
 
-        alert('Votre cadeau personnalisé a été ajouté au panier !');
+        toast('Votre cadeau personnalisé a été ajouté au panier ! 🎁', 'success');
 
         // Réinitialiser
         setSelectedProducts([]);

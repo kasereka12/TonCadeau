@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import type { Product } from '../types';
 
 const inputCls ='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
@@ -13,6 +14,7 @@ const inputCls ='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 
 
 const SupplierDashboard = () => {
     const { user, signIn, signOut } = useAuth();
+    const { toast } = useToast();
 
     const [products, setProducts]         = useState<Product[]>([]);
     const [email, setEmail]               = useState('');
@@ -68,13 +70,13 @@ const SupplierDashboard = () => {
 
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!imageFile) { alert('Veuillez sélectionner une image.'); return; }
+        if (!imageFile) { toast('Veuillez sélectionner une image.', 'error'); return; }
         setUploading(true);
         const ext      = imageFile.name.split('.').pop();
         const filePath = `${supplierName}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage
             .from('product-images').upload(filePath, imageFile, { upsert: false });
-        if (upErr) { alert(`Erreur upload : ${upErr.message}`); setUploading(false); return; }
+        if (upErr) { toast(`Erreur upload : ${upErr.message}`, 'error'); setUploading(false); return; }
         const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(filePath);
         const { data, error } = await supabase.from('products').insert([{
             name: newProduct.name, category: newProduct.category,
@@ -87,8 +89,9 @@ const SupplierDashboard = () => {
             setProducts(prev => [data as Product, ...prev]);
             setNewProduct({ name: '', recipient: '', category: '', price: '', description: '', stock: '' });
             clearImage();
+            toast('Produit ajouté avec succès !', 'success');
         } else {
-            alert(`Erreur : ${error?.message ?? "Impossible d'ajouter le produit."}`);
+            toast(`Erreur : ${error?.message ?? "Impossible d'ajouter le produit."}`, 'error');
         }
     };
 

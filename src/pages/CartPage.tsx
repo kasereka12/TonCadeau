@@ -4,6 +4,7 @@ import type { DeliveryInfo } from '../types';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart, Gift, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 
 const inputCls =
     'w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
@@ -21,6 +22,7 @@ const CartPage = () => {
         setGiftMessage, setDeliveryInfo, getTotalPrice,
     } = useCart();
 
+    const { toast } = useToast();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleQuantityChange = (productId: number | string, newQuantity: number) => {
@@ -35,12 +37,11 @@ const CartPage = () => {
     const handleCheckout = () => {
         if (items.length === 0) return;
         if (!deliveryInfo.recipientName || !deliveryInfo.deliveryAddress) {
-            alert('Veuillez remplir les informations de livraison.');
-            return;
+            toast('Veuillez remplir les informations de livraison.', 'error'); return;
         }
         setIsCheckingOut(true);
         setTimeout(() => {
-            alert('Commande passée avec succès ! Votre cadeau sera livré bientôt.');
+            toast('Commande passée avec succès ! Votre cadeau sera livré bientôt. 🎁', 'success');
             clearCart();
             setIsCheckingOut(false);
         }, 2000);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Star, Search, X } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import type { Product } from '../types';
@@ -67,9 +68,11 @@ const ProductsPage = () => {
 
     const activeLabel = RECIPIENTS.find(r => r.key === activeRecipient)?.label ?? '';
 
+    const { toast } = useToast();
+
     const handleAddToCart = (product: Product) => {
         addToCart(product);
-        alert(`${product.name} ajouté au panier !`);
+        toast(`${product.name} ajouté au panier !`, 'success');
     };
 
     return (

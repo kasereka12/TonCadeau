@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 // @ts-ignore: Header is a JS file without type declarations
 import Header from './components/Header';
 // @ts-ignore: Footer is a JS file without type declarations
@@ -20,11 +21,15 @@ import AdminPanel from './pages/AdminPanel';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import ImportantDatesPage from './pages/ImportantDatesPage';
+import { NotificationProvider } from './context/NotificationContext';
 import './style.css';
 
 function App() {
     return (
         <AuthProvider>
+            <ToastProvider>
+            <NotificationProvider>
             <CartProvider>
                 <Router>
                     <div className="min-h-screen flex flex-col">
@@ -42,12 +47,15 @@ function App() {
                                 <Route path="/login" element={<LoginPage />} />
                                 <Route path="/register" element={<RegisterPage />} />
                                 <Route path="/supplier/register" element={<RegisterPage />} />
+                                <Route path="/my-dates" element={<ImportantDatesPage />} />
                             </Routes>
                         </main>
                         <Footer />
                     </div>
                 </Router>
             </CartProvider>
+            </NotificationProvider>
+            </ToastProvider>
         </AuthProvider>
     );
 }
