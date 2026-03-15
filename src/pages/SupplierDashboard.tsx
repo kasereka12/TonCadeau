@@ -8,10 +8,9 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Product } from '../types';
 
-const inputCls =
-    'w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
+const inputCls ='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
 
-// ────────────────────────────────────────────────────────────────────────────
+
 const SupplierDashboard = () => {
     const { user, signIn, signOut } = useAuth();
 
@@ -362,12 +361,12 @@ const SupplierDashboard = () => {
                                 </label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {[
-                                        { key: 'homme',       icon: '👨', label: 'Homme' },
-                                        { key: 'femme',       icon: '👩', label: 'Femme' },
-                                        { key: 'jeune-garcon', icon: '👦', label: 'Jeune Garçon' },
-                                        { key: 'jeune-fille', icon: '👧', label: 'Jeune Fille' },
-                                        { key: 'bebe-garcon', icon: '👶', label: 'Bébé Garçon' },
-                                        { key: 'bebe-fille',  icon: '👶', label: 'Bébé Fille' },
+                                        { key: 'papa',        icon: 'fa-solid fa-person',      label: 'Homme' },
+                                        { key: 'conjoint',    icon: 'fa-solid fa-person-dress', label: 'Femme' },
+                                        { key: 'enfant',      icon: 'fa-solid fa-child',        label: 'Jeune Garçon' },
+                                        { key: 'famille',     icon: 'fa-solid fa-child-dress',  label: 'Jeune Fille' },
+                                        { key: 'bebe-garcon', icon: 'fa-solid fa-baby',         label: 'Bébé Garçon' },
+                                        { key: 'bebe-fille',  icon: 'fa-solid fa-baby',         label: 'Bébé Fille' },
                                     ].map(p => {
                                         const active = newProduct.recipient === p.key;
                                         return (
@@ -381,7 +380,7 @@ const SupplierDashboard = () => {
                                                         : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 hover:bg-slate-100'
                                                 }`}
                                             >
-                                                <span className="text-lg leading-none">{p.icon}</span>
+                                                <i className={`${p.icon} text-base leading-none`} />
                                                 <span className="text-[10px] font-semibold leading-tight">{p.label}</span>
                                             </button>
                                         );

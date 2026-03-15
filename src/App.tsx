@@ -19,6 +19,7 @@ import SupplierDashboard from './pages/SupplierDashboard';
 import AdminPanel from './pages/AdminPanel';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import './style.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
                             <Routes>
                                 <Route path="/" element={<HomePage />} />
                                 <Route path="/products" element={<ProductsPage />} />
+                                <Route path="/products/:id" element={<ProductDetailPage />} />
                                 <Route path="/compose-gift" element={<ComposeGiftPage />} />
                                 <Route path="/cart" element={<CartPage />} />
                                 <Route path="/supplier" element={<SupplierDashboard />} />

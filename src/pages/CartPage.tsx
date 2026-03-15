@@ -2,56 +2,30 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { DeliveryInfo } from '../types';
 import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, CreditCard, Truck, ShoppingCart, Gift, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
-/* ═══════════════════════════════════════════════
-   DESIGN TOKENS
-   ═══════════════════════════════════════════════ */
+const inputCls =
+    'w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#aa5a9e] focus:ring-2 focus:ring-[#aa5a9e]/15 transition-all';
 
-const t = {
-    bg: '#020617',
-    card: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
-    border: '1px solid rgba(255,255,255,0.06)',
-    borderHover: '1px solid rgba(255,255,255,0.12)',
-    input: {
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        color: '#ffffff',
-    },
-    text: '#ffffff',
-    textSec: 'rgba(255,255,255,0.6)',
-    textTer: 'rgba(255,255,255,0.4)',
-    cyan: '#38c9df',
-    gradient: 'linear-gradient(135deg, #38c9df, #8b5cf6)',
-    glow: '0 4px 20px rgba(56,201,223,0.2)',
-};
-
-/* ═══════════════════════════════════════════════
-   CART PAGE
-   ═══════════════════════════════════════════════ */
+const Label = ({ children, required }: { children: ReactNode; required?: boolean }) => (
+    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+        {children}{required && <span className="text-[#aa5a9e] ml-0.5">*</span>}
+    </label>
+);
 
 const CartPage = () => {
     const {
-        items,
-        giftMessage,
-        deliveryInfo,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-        setGiftMessage,
-        setDeliveryInfo,
-        getTotalPrice
+        items, giftMessage, deliveryInfo,
+        updateQuantity, removeFromCart, clearCart,
+        setGiftMessage, setDeliveryInfo, getTotalPrice,
     } = useCart();
 
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleQuantityChange = (productId: number | string, newQuantity: number) => {
-        if (newQuantity <= 0) {
-            removeFromCart(productId);
-        } else {
-            updateQuantity(productId, newQuantity);
-        }
+        if (newQuantity <= 0) removeFromCart(productId);
+        else updateQuantity(productId, newQuantity);
     };
 
     const handleDeliveryInfoChange = (field: keyof DeliveryInfo, value: string) => {
@@ -72,254 +46,187 @@ const CartPage = () => {
         }, 2000);
     };
 
-    /* ── Label component ── */
-    const Label = ({ children, required }: { children: ReactNode; required?: boolean }) => (
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
-            {children}{required && <span style={{ color: t.cyan }}> *</span>}
-        </label>
-    );
-
-    /* ── Input class string ── */
-    const inputClass = "w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none transition-all duration-300";
-
-    /* ══════ EMPTY STATE ══════ */
+    // ── Empty state ──────────────────────────────────────────────────────────
     if (items.length === 0) {
         return (
-            <div className="main-section min-h-screen flex items-center justify-center px-6" style={{ background: t.bg, fontFamily: "'DM Sans', sans-serif" }}>
-                <div className="text-center max-w-md">
-                    <div
-                        className="w-24 h-24 mx-auto mb-8 rounded-full flex items-center justify-center"
-                        style={{ background: 'rgba(56,201,223,0.08)' }}
-                    >
-                        <ShoppingCart className="h-10 w-10" style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+                <div className="text-center max-w-sm">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center"
+                        style={{ background: 'linear-gradient(135deg, #aa5a9e22, #6fc7d922)' }}>
+                        <ShoppingCart className="h-10 w-10 text-slate-300" />
                     </div>
-                    <h1
-                        className="text-3xl font-bold text-white mb-3"
-                        style={{ fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.3px' }}
-                    >
-                        Votre panier est vide
-                    </h1>
-                    <p style={{ color: t.textSec, fontSize: '15px', fontWeight: 300, lineHeight: 1.6, marginBottom: '32px' }}>
-                        Découvrez nos produits et composez le cadeau parfait !
+                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Votre panier est vide</h1>
+                    <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                        Découvrez nos produits et composez le cadeau parfait pour vos proches.
                     </p>
-                    <Link
-                        to="/products"
-                        className="inline-flex items-center gap-2 text-white px-8 py-3.5 rounded-full text-sm font-semibold transition-shadow duration-300"
-                        style={{ background: t.gradient, boxShadow: t.glow }}
-                    >
-                        Voir les Produits
+                    <Link to="/products"
+                        className="inline-flex items-center gap-2 text-white px-8 py-3.5 rounded-2xl text-sm font-semibold transition-all hover:opacity-90 hover:shadow-xl"
+                        style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
+                        Voir les produits
+                        <ChevronRight className="h-4 w-4" />
                     </Link>
                 </div>
             </div>
         );
     }
 
-    /* ══════ CART WITH ITEMS ══════ */
+    // ── Cart with items ───────────────────────────────────────────────────────
     return (
-        <div className="main-section min-h-screen" style={{ background: t.bg, fontFamily: "'DM Sans', sans-serif" }}>
-            <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="min-h-screen bg-slate-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
                 {/* Header */}
-                <div className="mb-10">
-                    <span style={{ color: t.cyan, fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'inline-block', marginBottom: '12px' }}>
-                        Panier
-                    </span>
-                    <h1
-                        className="text-3xl md:text-4xl font-bold text-white"
-                        style={{ fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.3px' }}
-                    >
-                        Mon Panier
-                    </h1>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-slate-900">Mon Panier</h1>
+                    <p className="text-slate-400 text-sm mt-1">
+                        {items.length} article{items.length > 1 ? 's' : ''} · {getTotalPrice().toFixed(2)} €
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {/* ── CART ITEMS ── */}
-                    <div className="lg:col-span-2">
-                        <div className="rounded-2xl p-6" style={{ background: t.card, border: t.border }}>
-                            <h2 className="text-lg font-semibold text-white mb-6">
-                                Articles ({items.length})
-                            </h2>
+                    {/* ── LEFT : items + gift message ── */}
+                    <div className="lg:col-span-2 space-y-5">
 
-                            <div className="space-y-4">
-                                {items.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="flex items-center gap-4 p-4 rounded-xl transition-all duration-300"
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
-                                    >
+                        {/* Articles */}
+                        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                                <h2 className="font-bold text-slate-900 text-sm">
+                                    Articles <span className="text-slate-400 font-normal ml-1">({items.length})</span>
+                                </h2>
+                                <button onClick={clearCart}
+                                    className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium">
+                                    Vider le panier
+                                </button>
+                            </div>
+
+                            <div className="divide-y divide-slate-50">
+                                {items.map(item => (
+                                    <div key={item.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors group">
                                         {/* Image */}
                                         <img
-                                            src={item.image}
+                                            src={item.image || '/placeholder.jpg'}
                                             alt={item.name}
-                                            className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                                            onError={e => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
+                                            className="w-16 h-16 object-cover rounded-xl flex-shrink-0 bg-slate-100"
                                         />
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-white font-semibold text-sm mb-1 truncate">{item.name}</h3>
-                                            <p style={{ color: t.textTer, fontSize: '12px', fontWeight: 300 }} className="truncate">{item.description}</p>
-                                            <span
-                                                className="text-sm font-bold mt-1 inline-block"
-                                                style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                                            >
+                                            <p className="font-semibold text-slate-900 text-sm truncate">{item.name}</p>
+                                            <p className="text-xs text-slate-400 mt-0.5 truncate">{item.description}</p>
+                                            <p className="text-sm font-bold mt-1" style={{ color: '#aa5a9e' }}>
                                                 {item.price} €
-                                            </span>
+                                            </p>
                                         </div>
 
                                         {/* Quantity */}
-                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                        <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden flex-shrink-0">
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
-                                                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                                            >
-                                                <Minus className="h-3.5 w-3.5 text-white" />
+                                                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+                                                <Minus className="h-3.5 w-3.5" />
                                             </button>
-                                            <span className="w-8 text-center text-white font-semibold text-sm">{item.quantity}</span>
+                                            <span className="w-8 text-center text-sm font-bold text-slate-900">
+                                                {item.quantity}
+                                            </span>
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
-                                                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                                            >
-                                                <Plus className="h-3.5 w-3.5 text-white" />
+                                                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+                                                <Plus className="h-3.5 w-3.5" />
                                             </button>
                                         </div>
 
-                                        {/* Total + Delete */}
-                                        <div className="text-right flex-shrink-0">
-                                            <span
-                                                className="text-base font-bold block"
-                                                style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                                            >
+                                        {/* Subtotal + delete */}
+                                        <div className="text-right flex-shrink-0 w-20">
+                                            <p className="font-bold text-slate-900 text-sm">
                                                 {(item.price * item.quantity).toFixed(2)} €
-                                            </span>
+                                            </p>
                                             <button
                                                 onClick={() => removeFromCart(item.id)}
-                                                className="mt-1.5 transition-colors duration-200"
-                                                style={{ color: 'rgba(255,255,255,0.3)' }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; }}
-                                            >
+                                                className="mt-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        </div>
 
-                            {/* Clear cart */}
-                            <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                <button
-                                    onClick={clearCart}
-                                    className="text-sm font-medium transition-colors duration-200"
-                                    style={{ color: 'rgba(255,255,255,0.4)' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
-                                >
-                                    Vider le panier
-                                </button>
+                        {/* Gift message */}
+                        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                                    style={{ background: 'linear-gradient(135deg, #aa5a9e22, #6fc7d922)' }}>
+                                    <Gift className="h-4 w-4" style={{ color: '#aa5a9e' }} />
+                                </div>
+                                <h2 className="font-bold text-slate-900 text-sm">Message cadeau</h2>
                             </div>
+                            <textarea
+                                value={giftMessage}
+                                onChange={e => setGiftMessage(e.target.value)}
+                                placeholder="Écrivez un message personnalisé pour le destinataire…"
+                                className={inputCls + ' resize-none'}
+                                rows={3}
+                            />
                         </div>
                     </div>
 
-                    {/* ── CHECKOUT SIDEBAR ── */}
+                    {/* ── RIGHT : delivery + summary ── */}
                     <div className="lg:col-span-1">
-                        <div className="rounded-2xl p-6 sticky top-24" style={{ background: t.card, border: t.border }}>
+                        <div className="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24 space-y-6">
 
-                            {/* Title */}
-                            <div className="flex items-center gap-3 mb-6">
-                                <div
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center"
-                                    style={{ background: 'rgba(56,201,223,0.1)' }}
-                                >
-                                    <CreditCard className="h-4 w-4" style={{ color: t.cyan }} />
-                                </div>
-                                <h2 className="text-lg font-semibold text-white">Finaliser</h2>
-                            </div>
-
-                            {/* Gift Message */}
-                            <div className="mb-5">
-                                <Label>Message cadeau</Label>
-                                <textarea
-                                    value={giftMessage}
-                                    onChange={(e) => setGiftMessage(e.target.value)}
-                                    placeholder="Écrivez un message personnalisé..."
-                                    className={inputClass}
-                                    style={t.input}
-                                    rows={3}
-                                />
-                            </div>
-
-                            {/* Delivery */}
-                            <div className="mb-6">
-                                <div className="flex items-center gap-2.5 mb-4">
-                                    <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: 'rgba(56,201,223,0.1)' }}>
-                                        <Truck className="h-3.5 w-3.5" style={{ color: t.cyan }} />
+                            {/* Delivery section */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                                        style={{ background: 'linear-gradient(135deg, #aa5a9e22, #6fc7d922)' }}>
+                                        <Truck className="h-4 w-4" style={{ color: '#6fc7d9' }} />
                                     </div>
-                                    <h3 className="text-sm font-semibold text-white">Livraison</h3>
+                                    <h2 className="font-bold text-slate-900 text-sm">Livraison</h2>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div>
                                         <Label required>Nom du destinataire</Label>
-                                        <input
-                                            type="text"
+                                        <input type="text"
                                             value={deliveryInfo.recipientName}
-                                            onChange={(e) => handleDeliveryInfoChange('recipientName', e.target.value)}
-                                            className={inputClass}
-                                            style={t.input}
-                                        />
+                                            onChange={e => handleDeliveryInfoChange('recipientName', e.target.value)}
+                                            className={inputCls} placeholder="Jean Dupont" />
                                     </div>
                                     <div>
                                         <Label>Email du destinataire</Label>
-                                        <input
-                                            type="email"
+                                        <input type="email"
                                             value={deliveryInfo.recipientEmail}
-                                            onChange={(e) => handleDeliveryInfoChange('recipientEmail', e.target.value)}
-                                            className={inputClass}
-                                            style={t.input}
-                                        />
+                                            onChange={e => handleDeliveryInfoChange('recipientEmail', e.target.value)}
+                                            className={inputCls} placeholder="jean@email.com" />
                                     </div>
                                     <div>
                                         <Label required>Adresse de livraison</Label>
                                         <textarea
                                             value={deliveryInfo.deliveryAddress}
-                                            onChange={(e) => handleDeliveryInfoChange('deliveryAddress', e.target.value)}
-                                            className={inputClass}
-                                            style={t.input}
-                                            rows={2}
-                                        />
+                                            onChange={e => handleDeliveryInfoChange('deliveryAddress', e.target.value)}
+                                            className={inputCls + ' resize-none'} rows={2}
+                                            placeholder="12 Rue des Fleurs, Casablanca" />
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label>Date</Label>
-                                            <input
-                                                type="date"
+                                            <input type="date"
                                                 value={deliveryInfo.deliveryDate}
-                                                onChange={(e) => handleDeliveryInfoChange('deliveryDate', e.target.value)}
-                                                className={inputClass}
-                                                style={t.input}
-                                            />
+                                                onChange={e => handleDeliveryInfoChange('deliveryDate', e.target.value)}
+                                                className={inputCls} />
                                         </div>
                                         <div>
                                             <Label>Heure</Label>
                                             <select
                                                 value={deliveryInfo.deliveryTime}
-                                                onChange={(e) => handleDeliveryInfoChange('deliveryTime', e.target.value)}
-                                                className={inputClass + " cursor-pointer appearance-none"}
-                                                style={t.input}
-                                            >
-                                                <option value="" style={{ background: '#0f172a', color: '#fff' }}>Choisir</option>
-                                                <option value="morning" style={{ background: '#0f172a', color: '#fff' }}>Matin (9h-12h)</option>
-                                                <option value="afternoon" style={{ background: '#0f172a', color: '#fff' }}>Après-midi (14h-17h)</option>
-                                                <option value="evening" style={{ background: '#0f172a', color: '#fff' }}>Soirée (17h-20h)</option>
+                                                onChange={e => handleDeliveryInfoChange('deliveryTime', e.target.value)}
+                                                className={inputCls + ' bg-white'}>
+                                                <option value="">Choisir</option>
+                                                <option value="morning">Matin (9h–12h)</option>
+                                                <option value="afternoon">Après-midi (14h–17h)</option>
+                                                <option value="evening">Soirée (17h–20h)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -327,25 +234,20 @@ const CartPage = () => {
                             </div>
 
                             {/* Summary */}
-                            <div className="pt-5 mb-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between">
-                                        <span style={{ color: t.textSec, fontSize: '14px' }}>Sous-total</span>
-                                        <span className="text-white font-medium text-sm">{getTotalPrice().toFixed(2)} €</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span style={{ color: t.textSec, fontSize: '14px' }}>Livraison</span>
-                                        <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 500 }}>Gratuite</span>
-                                    </div>
-                                    <div className="flex justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <span className="text-white font-semibold">Total</span>
-                                        <span
-                                            className="text-lg font-bold"
-                                            style={{ background: 'linear-gradient(135deg, #38c9df, #a67dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                                        >
-                                            {getTotalPrice().toFixed(2)} €
-                                        </span>
-                                    </div>
+                            <div className="border-t border-slate-100 pt-5 space-y-3">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">Sous-total</span>
+                                    <span className="font-medium text-slate-900">{getTotalPrice().toFixed(2)} €</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">Livraison</span>
+                                    <span className="font-semibold text-emerald-500">Gratuite</span>
+                                </div>
+                                <div className="flex justify-between pt-3 border-t border-slate-100">
+                                    <span className="font-bold text-slate-900">Total</span>
+                                    <span className="text-xl font-bold" style={{ color: '#aa5a9e' }}>
+                                        {getTotalPrice().toFixed(2)} €
+                                    </span>
                                 </div>
                             </div>
 
@@ -353,33 +255,25 @@ const CartPage = () => {
                             <button
                                 onClick={handleCheckout}
                                 disabled={isCheckingOut}
-                                className="w-full text-white py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                style={{ background: t.gradient, boxShadow: t.glow }}
-                                onMouseEnter={(e) => { if (!isCheckingOut) e.currentTarget.style.boxShadow = '0 8px 32px rgba(56,201,223,0.3)'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = t.glow; }}
-                            >
+                                className="w-full flex items-center justify-center gap-2 text-white py-3.5 rounded-2xl font-semibold text-sm transition-all hover:opacity-90 hover:shadow-xl disabled:opacity-60"
+                                style={{ background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' }}>
                                 {isCheckingOut ? (
                                     <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
-                                        <span>Traitement...</span>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Traitement…
                                     </>
                                 ) : (
                                     <>
                                         <CreditCard className="h-4 w-4" />
-                                        <span>Passer la Commande</span>
+                                        Passer la commande
                                     </>
                                 )}
                             </button>
 
-                            {/* Trust badge */}
-                            <div
-                                className="mt-4 py-3 px-4 rounded-xl text-center"
-                                style={{ background: 'rgba(56,201,223,0.05)', border: '1px solid rgba(56,201,223,0.08)' }}
-                            >
-                                <p style={{ color: t.textTer, fontSize: '12px', fontWeight: 500 }}>
-                                    Paiement sécurisé · Livraison gratuite
-                                </p>
-                            </div>
+                            {/* Trust */}
+                            <p className="text-center text-xs text-slate-400">
+                                🔒 Paiement sécurisé · Livraison gratuite
+                            </p>
                         </div>
                     </div>
                 </div>
