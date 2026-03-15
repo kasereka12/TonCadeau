@@ -17,10 +17,10 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
 
 /* Nav links definition shared between desktop nav and mobile dropdown */
 const NAV_LINKS = [
-    { to: '/',             label: 'Accueil',            icon: Home,        supplierHidden: false },
-    { to: '/products',     label: 'Produits',           icon: Package,     supplierHidden: false },
-    { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,        supplierHidden: true  },
-    { to: '/orders',       label: 'Mes commandes',      icon: ShoppingBag, supplierHidden: true  },
+    { to: '/',             label: 'Accueil',            icon: Home,        supplierHidden: false, authRequired: false },
+    { to: '/products',     label: 'Produits',           icon: Package,     supplierHidden: false, authRequired: false },
+    { to: '/compose-gift', label: 'Composer un cadeau', icon: Gift,        supplierHidden: true,  authRequired: false },
+    { to: '/orders',       label: 'Mes commandes',      icon: ShoppingBag, supplierHidden: true,  authRequired: true  },
 ];
 
 const DropdownLink = ({ to, icon: Icon, label, color = '#aa5a9e', bg = '#aa5a9e', onClick }: {
@@ -51,6 +51,7 @@ const Header = () => {
     const initials    = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
     const cartCount   = getTotalItems();
     const isSupplier  = role === 'supplier';
+    const isAdmin     = role === 'admin';
 
     useEffect(() => {
         const onScroll = () => setIsScrolled(window.scrollY > 60);
@@ -72,8 +73,11 @@ const Header = () => {
     const close    = () => setDropdownOpen(false);
     const openNotif = () => { setNotifOpen(v => !v); setDropdownOpen(false); };
 
-    /* Nav links visible for this role */
-    const visibleLinks = NAV_LINKS.filter(l => !(l.supplierHidden && isSupplier));
+    /* Nav links visible for this role + auth state */
+    const visibleLinks = NAV_LINKS.filter(l =>
+        !(l.supplierHidden && isSupplier) &&
+        !(l.authRequired && !user)
+    );
 
     return (
         <header
@@ -124,6 +128,15 @@ const Header = () => {
                                 </span>
                             )}
                         </Link>
+
+                        {/* Admin dashboard shortcut */}
+                        {isAdmin && (
+                            <Link to="/admin/gestion"
+                                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-bold transition-all duration-200">
+                                <LayoutDashboard className="h-3.5 w-3.5" />
+                                Admin
+                            </Link>
+                        )}
 
                         {/* Notification bell (client only) */}
                         {user && !isSupplier && (
@@ -277,6 +290,16 @@ const Header = () => {
                                                         <span className="font-medium">Mon tableau de bord</span>
                                                     </Link>
                                                 )}
+                                                {/* Admin: dashboard link on mobile */}
+                                                {isAdmin && (
+                                                    <Link to="/admin/gestion" onClick={close}
+                                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-all">
+                                                        <div className="w-8 h-8 rounded-xl bg-[#aa5a9e]/10 flex items-center justify-center">
+                                                            <LayoutDashboard className="h-4 w-4 text-[#aa5a9e]" />
+                                                        </div>
+                                                        <span className="font-medium">Administration</span>
+                                                    </Link>
+                                                )}
                                             </div>
 
                                             {/* ── Account links ── */}
@@ -296,6 +319,13 @@ const Header = () => {
                                                     /* Dashboard: hidden on mobile (already in mobile nav section) */
                                                     <div className="hidden md:block">
                                                         <DropdownLink to="/supplier" icon={LayoutDashboard} label="Mon tableau de bord"
+                                                            color="#aa5a9e" bg="#aa5a9e" onClick={close} />
+                                                    </div>
+                                                )}
+                                                {isAdmin && (
+                                                    /* Admin panel: hidden on mobile (already in mobile nav section) */
+                                                    <div className="hidden md:block">
+                                                        <DropdownLink to="/admin/gestion" icon={LayoutDashboard} label="Administration"
                                                             color="#aa5a9e" bg="#aa5a9e" onClick={close} />
                                                     </div>
                                                 )}

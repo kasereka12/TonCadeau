@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -28,6 +28,35 @@ import { NotificationProvider } from './context/NotificationContext';
 import Preloader from './components/Preloader';
 import './style.css';
 
+function AppLayout() {
+    const location = useLocation();
+    const isAdmin = location.pathname.startsWith('/admin');
+    return (
+        <div className="min-h-screen flex flex-col">
+            {!isAdmin && <Header />}
+            <main className="flex-1">
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/products" element={<ProductsPage />} />
+                    <Route path="/products/:id" element={<ProductDetailPage />} />
+                    <Route path="/compose-gift" element={<ComposeGiftPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/supplier" element={<SupplierDashboard />} />
+                    <Route path="/supplier/login" element={<SupplierDashboard />} />
+                    <Route path="/admin/gestion" element={<AdminPanel />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/supplier/register" element={<RegisterPage />} />
+                    <Route path="/my-dates" element={<ImportantDatesPage />} />
+                    <Route path="/orders" element={<OrderHistoryPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                </Routes>
+            </main>
+            {!isAdmin && <Footer />}
+        </div>
+    );
+}
+
 function App() {
     return (
         <AuthProvider>
@@ -36,28 +65,7 @@ function App() {
             <CartProvider>
                 <Preloader />
                 <Router>
-                    <div className="min-h-screen flex flex-col">
-                        <Header />
-                        <main className="flex-1">
-                            <Routes>
-                                <Route path="/" element={<HomePage />} />
-                                <Route path="/products" element={<ProductsPage />} />
-                                <Route path="/products/:id" element={<ProductDetailPage />} />
-                                <Route path="/compose-gift" element={<ComposeGiftPage />} />
-                                <Route path="/cart" element={<CartPage />} />
-                                <Route path="/supplier" element={<SupplierDashboard />} />
-                                <Route path="/supplier/login" element={<SupplierDashboard />} />
-                                <Route path="/admin/gestion" element={<AdminPanel />} />
-                                <Route path="/login" element={<LoginPage />} />
-                                <Route path="/register" element={<RegisterPage />} />
-                                <Route path="/supplier/register" element={<RegisterPage />} />
-                                <Route path="/my-dates" element={<ImportantDatesPage />} />
-                                <Route path="/orders" element={<OrderHistoryPage />} />
-                                <Route path="/checkout" element={<CheckoutPage />} />
-                            </Routes>
-                        </main>
-                        <Footer />
-                    </div>
+                    <AppLayout />
                 </Router>
             </CartProvider>
             </NotificationProvider>

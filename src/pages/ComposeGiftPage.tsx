@@ -50,8 +50,10 @@ const ComposeGiftPage = () => {
             setSelectedProducts(selectedProducts.map(p =>
                 p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
             ));
+            toast(`+1 · ${product.name}`, 'success');
         } else {
             setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+            toast(`${product.name} ajouté au cadeau`, 'success');
         }
     };
 
