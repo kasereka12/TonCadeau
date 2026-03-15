@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Star, Package, Tag, ChevronRight, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Star, ChevronRight, Plus, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import type { Product } from '../types';
 
 const RECIPIENT_LABELS: Record<string, string> = {
-    papa:        'Homme',
-    conjoint:    'Femme',
-    enfant:      'Jeune Garçon',
-    famille:     'Jeune Fille',
+    papa: 'Homme',
+    conjoint: 'Femme',
+    enfant: 'Jeune Garçon',
+    famille: 'Jeune Fille',
     'bebe-garcon': 'Bébé Garçon',
-    'bebe-fille':  'Bébé Fille',
+    'bebe-fille': 'Bébé Fille',
 };
 
 const ProductDetailPage = () => {
@@ -19,11 +19,11 @@ const ProductDetailPage = () => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
 
-    const [product, setProduct]   = useState<Product | null>(null);
-    const [related, setRelated]   = useState<Product[]>([]);
-    const [loading, setLoading]   = useState(true);
+    const [product, setProduct] = useState<Product | null>(null);
+    const [related, setRelated] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
-    const [added, setAdded]       = useState(false);
+    const [added, setAdded] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -153,11 +153,10 @@ const ProductDetailPage = () => {
                             {/* Price */}
                             <div className="flex items-end gap-3 mb-6 pb-6 border-b border-slate-100">
                                 <span className="text-4xl font-bold text-slate-900">{product.price} €</span>
-                                <span className={`mb-1 text-sm font-semibold px-2.5 py-1 rounded-lg ${
-                                    product.stock < 10
-                                        ? 'bg-red-50 text-red-500'
-                                        : 'bg-emerald-50 text-emerald-600'
-                                }`}>
+                                <span className={`mb-1 text-sm font-semibold px-2.5 py-1 rounded-lg ${product.stock < 10
+                                    ? 'bg-red-50 text-red-500'
+                                    : 'bg-emerald-50 text-emerald-600'
+                                    }`}>
                                     {product.stock < 10
                                         ? `⚠ Plus que ${product.stock}`
                                         : `✓ ${product.stock} disponibles`}
@@ -195,11 +194,10 @@ const ProductDetailPage = () => {
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={product.stock === 0}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 ${
-                                        added
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'text-white hover:opacity-90 hover:shadow-xl disabled:opacity-50'
-                                    }`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 ${added
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'text-white hover:opacity-90 hover:shadow-xl disabled:opacity-50'
+                                        }`}
                                     style={!added ? { background: 'linear-gradient(135deg, #aa5a9e, #6fc7d9)' } : {}}
                                 >
                                     <ShoppingCart className="h-4 w-4" />
