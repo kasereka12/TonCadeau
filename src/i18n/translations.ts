@@ -165,4 +165,10 @@ export const translations = {
 } as const;
 
 export type Lang = keyof typeof translations;
-export type T = typeof translations.fr;
+// Generic translation shape — values are strings regardless of the active language
+export type T = {
+    nav:     { [K in keyof typeof translations.fr.nav]:     string };
+    auth:    { [K in keyof typeof translations.fr.auth]:    string };
+    profile: { [K in keyof typeof translations.fr.profile]: string };
+    common:  { [K in keyof typeof translations.fr.common]:  string };
+};
