@@ -22,7 +22,7 @@ const ProductsPage = () => {
     const [searchTerm, setSearchTerm] = useState(searchParams.get('q') ?? '');
     const [sortBy, setSortBy] = useState('default');
     const { addToCart } = useCart();
-
+    const [categories, setCategories] = useState<string[]>([]);
     const [activeCategory, setActiveCategory] = useState('all');
 
     const activeRecipient = searchParams.get('recipient') ?? '';
@@ -41,9 +41,22 @@ const ProductsPage = () => {
         };
         fetchProducts();
     }, []);
+    useEffect(() => {
+    const fetchCategories = async () => {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('name');
+
+        if (!error && data) {
+            setCategories(['all', ...data.map(c => c.name)]);
+        }
+    };
+
+    fetchCategories();
+}, []);
 
     // Catégories dérivées des produits chargés
-    const categories = ['all', ...Array.from(new Set(products.map(p => p.category))).filter(Boolean)];
+    //const categories = ['all', ...Array.from(new Set(products.map(p => p.category))).filter(Boolean)];
 
     const setRecipient = (key: string) => {
         if (key === activeRecipient) {
@@ -57,8 +70,7 @@ const ProductsPage = () => {
     const filteredProducts = products
         .filter(product => {
             const matchesRecipient = !activeRecipient || product.tags.includes(activeRecipient);
-            const matchesCategory  = activeCategory === 'all' || product.category === activeCategory;
-            const matchesSearch    = !searchTerm ||
+const matchesCategory  = activeCategory === 'all' || product.category === activeCategory;            const matchesSearch    = !searchTerm ||
                 product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 product.description.toLowerCase().includes(searchTerm.toLowerCase());
             return matchesRecipient && matchesCategory && matchesSearch;

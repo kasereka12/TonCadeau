@@ -2,7 +2,7 @@
 create table if not exists public.profiles (
     id          uuid        references auth.users(id) on delete cascade primary key,
     email       text,
-    full_name   text,
+    full_name   text,²
     role        text        not null default 'client',
     created_at  timestamptz not null default now()
 );

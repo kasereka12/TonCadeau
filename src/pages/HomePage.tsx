@@ -65,9 +65,11 @@ const HomePage = () => {
     ];
 
     const carouselImages = [
-        { url: '/header1.jpg', title: 'Cadeaux Personnalisés', description: 'Créez des moments inoubliables' },
-        { url: '/header2.jpg', title: 'Qualité Premium', description: 'Des produits sélectionnés avec soin' },
-        { url: '/header3.jpg', title: 'Livraison Rapide', description: 'Recevez vos cadeaux en temps voulu' }
+        { url: '/Header5.jpeg', title: 'Cadeaux Personnalisés', description: 'Créez des moments inoubliables' },
+        { url: '/Header6.jpeg', title: 'Qualité Premium', description: 'Des produits sélectionnés avec soin' },
+        { url: '/Header7.jpeg', title: 'Livraison Rapide', description: 'Recevez vos cadeaux en temps voulu' },
+        { url: '/Header8.jpeg', title: 'Livraison Rapide', description: 'Recevez vos cadeaux en temps voulu' },
+        { url: '/Header9.jpeg', title: 'Livraison Rapide', description: 'Recevez vos cadeaux en temps voulu' }
     ];
 
     useEffect(() => {

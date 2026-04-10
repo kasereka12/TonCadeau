@@ -29,15 +29,28 @@ const ComposeGiftPage = () => {
             .then(({ data }) => { if (data) setProducts(data as Product[]); });
     }, []);
 
-    const categories = [
-        { id: 'all', name: 'Tous' },
-        ...Array.from(new Set(products.map(p => p.category))).map(c => ({ id: c, name: c }))
-    ];
+
     const { toast } = useToast();
     const [giftMessage, setGiftMessage] = useState('');
     const [recipientName, setRecipientName] = useState('');
     const { addGiftBundle } = useCart();
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+useEffect(() => {
+    const fetchCategories = async () => {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('name');
 
+        if (!error && data) {
+            setCategories([
+                { id: 'all', name: 'Tous' },
+                ...data.map(c => ({ id: c.name, name: c.name }))
+            ]);
+        }
+    };
+
+    fetchCategories();
+}, []);
     const filteredProducts = products.filter(product => {
         const matchPersona   = selectedPersona === 'all' || product.tags?.[0] === selectedPersona;
         const matchCategory  = selectedCategory === 'all' || product.category === selectedCategory;
